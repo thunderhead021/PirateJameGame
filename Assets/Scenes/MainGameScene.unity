@@ -288,8 +288,8 @@ GameObject:
   - component: {fileID: 348139469}
   - component: {fileID: 348139468}
   - component: {fileID: 348139467}
-  m_Layer: 0
-  m_Name: Plane
+  m_Layer: 10
+  m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -377,7 +377,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -877,6 +877,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1620877523}
   - component: {fileID: 1620877524}
+  - component: {fileID: 1620877525}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -929,6 +930,30 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!114 &1620877525
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620877519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d27023536d757e344ad98415c05bc6d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 7
+  groundDrag: 5
+  playerHeight: 2
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 1024
+  grounded: 0
+  jumpForce: 7
+  jumpCooldown: 0.25
+  airMultiplier: 0.4
+  jumpKey: 32
+  orientation: {fileID: 1832359680}
 --- !u!1 &1704606201
 GameObject:
   m_ObjectHideFlags: 0
