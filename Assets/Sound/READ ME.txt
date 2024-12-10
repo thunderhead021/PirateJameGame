@@ -1,0 +1,8 @@
+How to use the sound system
+1. Go to SoundID script oopy this line and replace the name of the mp3 file
+public const string NAME_HERE = nameof(NAME_HERE);
+2. Go to SoundFactory and copy this line in the return of the GetSound function
+SoundID.NAME_HERE => sources.FirstOrDefault(x => x.name == name),
+3. Use the sound by using 1 of these lines:
+	SoundManager.instance.PlaySoundLoop(SoundID.NAME_HERE)
+	SoundManager.instance.PlaySoundTrigger(SoundID.NAME_HERE)

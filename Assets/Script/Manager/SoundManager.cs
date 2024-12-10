@@ -20,7 +20,7 @@ public class SoundManager : MonoBehaviour
     public void PlaySoundLoop(string id) => PlaySound( id, true );
 
 
-    public void PlaySound(string id, bool loop = false) 
+    private void PlaySound(string id, bool loop = false) 
     {
         audioSource.clip = soundFactory.GetSound(id);
         audioSource.loop = loop;
