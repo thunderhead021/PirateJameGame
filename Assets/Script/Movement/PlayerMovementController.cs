@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
@@ -32,6 +30,15 @@ public class PlayerMovementController : MonoBehaviour
 
     Rigidbody rb;
 
+    [HideInInspector]
+    public bool canMove = true;
+
+    public static PlayerMovementController instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     private void Start()
     {
@@ -60,22 +67,28 @@ public class PlayerMovementController : MonoBehaviour
 
     private void MyInput()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
-
-        // when to jump
-        if (Input.GetKey(jumpKey) && readyToJump && grounded)
+        if (canMove) 
         {
-            readyToJump = false;
+            horizontalInput = Input.GetAxisRaw("Horizontal");
+            verticalInput = Input.GetAxisRaw("Vertical");
 
-            Jump();
+            // when to jump
+            if (Input.GetKey(jumpKey) && readyToJump && grounded)
+            {
+                readyToJump = false;
 
-            Invoke(nameof(ResetJump), jumpCooldown);
-        }
+                Jump();
+
+                Invoke(nameof(ResetJump), jumpCooldown);
+            }
+        }  
     }
 
     private void MovePlayer()
     {
+        if(!canMove)
+            return;
+
         // calculate movement direction
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
@@ -89,6 +102,9 @@ public class PlayerMovementController : MonoBehaviour
 
     private void SpeedControl()
     {
+        if (!canMove)
+            return;
+
         Vector3 flatVel = new(rb.velocity.x, 0f, rb.velocity.z);
 
         // limit velocity if needed
@@ -101,6 +117,9 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Jump()
     {
+        if (!canMove)
+            return;
+
         // reset y velocity
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
