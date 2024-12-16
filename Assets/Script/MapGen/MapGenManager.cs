@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class MapGenManager : MonoBehaviour
+public class MapGenerator : MonoBehaviour
 {
     public List<SO_Room> RoomList;
     public List<SO_LevelInstance> LevelInstances;
@@ -9,22 +9,33 @@ public class MapGenManager : MonoBehaviour
     public int Seed;
     public int MinIntermediaryRooms = 1;
     public int MaxIntermediaryRooms = 3;
-    public bool ShowDebug = true;
-    public bool generateMap = false;
     public int MinDistanceBetweenRooms = 2;
     public int MaxDistanceBetweenRooms = 5;
-    private List<Vector2Int> occupiedPositions = new List<Vector2Int>();
-
+    public bool ShowDebug = true;
+    public bool generateMap = false;
     public void Update()
     {
         if(generateMap == true)
         {
             LoadLevel(CurrentLevelIndex);
-            GenerateMap();
+
             Debug.Log("GeneratingMap");
             generateMap = false;
         }
     }
+    private struct RoomPlacement
+    {
+        public Vector2Int Position;
+        public Vector2Int Size;
+
+        public RoomPlacement(Vector2Int position, Vector2Int size)
+        {
+            Position = position;
+            Size = size;
+        }
+    }
+
+    private List<RoomPlacement> occupiedPositions = new List<RoomPlacement>();
 
     public void GenerateMap()
     {
@@ -32,27 +43,37 @@ public class MapGenManager : MonoBehaviour
         Random.InitState(Seed);
 
         Vector2Int currentPosition = Vector2Int.zero;
+        occupiedPositions.Clear();
+
         foreach (SO_Room room in RoomList)
         {
-            PlaceRoom(room, currentPosition);
+            currentPosition = PlaceRoom(room, currentPosition);
             int intermediaryRoomCount = Random.Range(MinIntermediaryRooms, MaxIntermediaryRooms + 1);
             currentPosition = GeneratePath(currentPosition, intermediaryRoomCount);
         }
     }
 
-    
     private Vector2Int PlaceRoom(SO_Room roomData, Vector2Int currentPosition)
     {
         Vector2Int position;
+        int attempts = 0;
+        const int maxAttempts = 100;
+
         do
         {
             position = currentPosition + new Vector2Int(
                 Random.Range(MinDistanceBetweenRooms, MaxDistanceBetweenRooms + 1),
                 Random.Range(MinDistanceBetweenRooms, MaxDistanceBetweenRooms + 1)
             );
+            attempts++;
+            if (attempts > maxAttempts)
+            {
+                Debug.LogWarning($"Failed to place room {roomData.RoomName} after {maxAttempts} attempts. Skipping...");
+                return currentPosition;
+            }
         } while (CheckOverlap(position, roomData.Size));
 
-        occupiedPositions.Add(position);
+        occupiedPositions.Add(new RoomPlacement(position, roomData.Size));
 
         GameObject roomObject = new GameObject(roomData.RoomName);
         roomObject.transform.position = new Vector3(position.x, 0, position.y);
@@ -69,10 +90,12 @@ public class MapGenManager : MonoBehaviour
 
     private bool CheckOverlap(Vector2Int position, Vector2Int size)
     {
-        foreach (Vector2Int occupied in occupiedPositions)
+        foreach (RoomPlacement placement in occupiedPositions)
         {
-            if (position.x < occupied.x + size.x && position.x + size.x > occupied.x &&
-                position.y < occupied.y + size.y && position.y + size.y > occupied.y)
+            if (position.x < placement.Position.x + placement.Size.x + MinDistanceBetweenRooms &&
+                position.x + size.x + MinDistanceBetweenRooms > placement.Position.x &&
+                position.y < placement.Position.y + placement.Size.y + MinDistanceBetweenRooms &&
+                position.y + size.y + MinDistanceBetweenRooms > placement.Position.y)
             {
                 return true;
             }

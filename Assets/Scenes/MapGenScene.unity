@@ -521,6 +521,8 @@ MonoBehaviour:
   Seed: 1
   MinIntermediaryRooms: 1
   MaxIntermediaryRooms: 3
+  MinDistanceBetweenRooms: 20
+  MaxDistanceBetweenRooms: 20
   ShowDebug: 1
   generateMap: 0
 --- !u!1 &371435690
