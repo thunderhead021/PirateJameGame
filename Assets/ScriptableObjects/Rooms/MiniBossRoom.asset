@@ -17,5 +17,12 @@ MonoBehaviour:
   MergeAmount: 2
   Size: {x: 5, y: 5}
   RoomPrefab: {fileID: 0}
-  MinDistanceFromStart: 0
-  MaxDistanceFromStart: 0
+  directionStates:
+  - direction: 0
+    isActive: 1
+  - direction: 1
+    isActive: 1
+  - direction: 2
+    isActive: 1
+  - direction: 3
+    isActive: 1
