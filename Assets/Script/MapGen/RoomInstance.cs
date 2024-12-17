@@ -3,19 +3,13 @@ using UnityEngine;
 public class RoomInstance : MonoBehaviour
 {
     public SO_Room RoomData;
-    public Vector2Int GridPosition;
-    private BoxCollider triggerCollider;
+    private Collider triggerCollider;
 
     public void SetupRoom(SO_Room roomData, Vector2Int position)
     {
         RoomData = roomData;
-        GridPosition = position;
-        transform.position = new Vector3(position.x, 0, position.y);
-
-        triggerCollider = gameObject.AddComponent<BoxCollider>();
+        triggerCollider = this.GetComponentInChildren<Collider>();
         triggerCollider.isTrigger = true;
-        triggerCollider.size = new Vector3(RoomData.Size.x, 2f, RoomData.Size.y);
-        triggerCollider.center = new Vector3(0, 1f, 0);
     }
 
     private void OnTriggerEnter(Collider other)

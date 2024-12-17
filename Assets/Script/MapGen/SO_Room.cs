@@ -95,7 +95,8 @@ public class SO_Room : ScriptableObject
     SO_Room clone = ScriptableObject.CreateInstance<SO_Room>();
     clone.Size = this.Size;
     clone.SplitAmount = this.SplitAmount;
-
+    clone.RoomPrefab = RoomPrefab;
+    
     // Copy directionStates
     clone.directionStates = new List<DirectionState>();
     foreach (var dirState in this.directionStates)
@@ -113,7 +114,6 @@ public class SO_Room : ScriptableObject
     {
         cloneCounters[RoomName] = 0;
     }
-
     cloneCounters[RoomName]++;
     clone.RoomName = $"{RoomName}_Clone{cloneCounters[RoomName]}";
     clone.name = clone.RoomName;

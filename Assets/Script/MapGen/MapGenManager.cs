@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEngine.PlayerLoop;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -51,40 +53,36 @@ public class MapGenerator : MonoBehaviour
         Vector2Int spawnPosition = Vector2Int.zero;
         occupiedPositions.Clear();
 
-        // Place the Spawn Room
         PlaceRoomExact(spawnRoom, spawnPosition);
 
-        // Place the Boss Room
         SO_LevelInstance currentLevel = LevelInstances[CurrentLevelIndex];
         Vector2Int bossRoomPosition = new Vector2Int(0, currentLevel.LevelDistance);
         PlaceRoomExact(bossRoom, bossRoomPosition);
 
-        // Place intermediary rooms
         foreach (var room in RoomList)
         {
             PlaceRoom(room, spawnPosition);
         }
 
-        // Generate paths between rooms
         GeneratePaths();
+    }
+
+    private void InstRoom(SO_Room roomData, Vector2Int position)
+    {
+        GameObject roomObject = Instantiate(roomData.RoomPrefab);
+        roomObject.name = roomData.RoomName;
+        roomObject.transform.position = new Vector3(position.x, 0, position.y);
+        RoomInstance instance = roomObject.AddComponent<RoomInstance>();
+        instance.SetupRoom(roomData, position);
+        occupiedPositions.Add(new RoomPlacement(position, roomData.Size, roomData));  
     }
 
     private void PlaceRoomExact(SO_Room roomData, Vector2Int position)
     {
-        occupiedPositions.Add(new RoomPlacement(position, roomData.Size, roomData));
-
-        GameObject roomObject = new GameObject(roomData.RoomName);
-        roomObject.transform.position = new Vector3(position.x, 0, position.y);
-        RoomInstance instance = roomObject.AddComponent<RoomInstance>();
-        instance.SetupRoom(roomData, position);
-
-        if (ShowDebug)
-        {
-            DebugRenderer.DrawRoom(position, roomData.Size, roomData.RoomName);
-        }
+        InstRoom(roomData, position);
     }
-
-    private Vector2Int PlaceRoom(SO_Room roomData, Vector2Int spawnPosition)
+    
+    private void PlaceRoom(SO_Room roomData, Vector2Int spawnPosition)
     {
         SO_LevelInstance currentLevel = LevelInstances[CurrentLevelIndex];
         Vector2Int bossPosition = new Vector2Int(0, currentLevel.LevelDistance);
@@ -94,29 +92,14 @@ public class MapGenerator : MonoBehaviour
         float t = (float)roomIndex / (RoomList.Count + 1);
         int positionY = Mathf.RoundToInt(totalDistance * t);
 
-        Vector2Int position = new Vector2Int(
-            Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1),
-            positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1)
-        );
+        Vector2Int position = new Vector2Int(Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1));
 
         if (CheckOverlap(position, roomData.Size))
         {
-            return spawnPosition; // Return spawn position if overlap detected
+            return;
         }
 
-        occupiedPositions.Add(new RoomPlacement(position, roomData.Size, roomData));
-
-        GameObject roomObject = new GameObject(roomData.RoomName);
-        roomObject.transform.position = new Vector3(position.x, 0, position.y);
-        RoomInstance instance = roomObject.AddComponent<RoomInstance>();
-        instance.SetupRoom(roomData, position);
-
-        if (ShowDebug)
-        {
-            DebugRenderer.DrawRoom(position, roomData.Size, roomData.RoomName);
-        }
-
-        return position;
+        InstRoom(roomData, position);
     }
 
     private bool CheckOverlap(Vector2Int position, Vector2Int size)
@@ -196,12 +179,15 @@ public class MapGenerator : MonoBehaviour
         
         if (directionOffset.HasValue)
         {
-            Vector2 position = startRoom.Position + directionOffset.Value;
+            Vector2 position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
+            Debug.Log(directionOffset.Value);
+            Debug.Log(startRoom.roomData.Size /2);
+            Debug.Log(position);
 
             // Spawn a debug sphere at the midpoint of the edge in the chosen direction
             if (ShowDebug)
             {
-                DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.red, 5f); // Red sphere with radius 0.5 and duration of 5 seconds
+                DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.red);
             }
 
             // Convert the Vector2 direction back to Direction enum and set it as inactive

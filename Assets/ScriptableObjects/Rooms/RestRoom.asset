@@ -15,8 +15,8 @@ MonoBehaviour:
   RoomName: RestRoom
   SplitAmount: 2
   MergeAmount: 2
-  Size: {x: 5, y: 5}
-  RoomPrefab: {fileID: 0}
+  Size: {x: 6, y: 6}
+  RoomPrefab: {fileID: 3490285591398873037, guid: f7e123f2e97b33847985c5b3488672f4, type: 3}
   directionStates:
   - direction: 0
     isActive: 1
