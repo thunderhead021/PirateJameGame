@@ -9,4 +9,5 @@ public class SO_LevelInstance : ScriptableObject
     public int Seed;
     public int MinIntermediaryRooms;
     public int MaxIntermediaryRooms;
+    public int LevelDistance;
 }

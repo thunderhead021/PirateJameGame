@@ -13,16 +13,7 @@ public class MapGenerator : MonoBehaviour
     public int MaxDistanceBetweenRooms = 5;
     public bool ShowDebug = true;
     public bool generateMap = false;
-    public void Update()
-    {
-        if(generateMap == true)
-        {
-            LoadLevel(CurrentLevelIndex);
 
-            Debug.Log("GeneratingMap");
-            generateMap = false;
-        }
-    }
     private struct RoomPlacement
     {
         public Vector2Int Position;
@@ -37,19 +28,56 @@ public class MapGenerator : MonoBehaviour
 
     private List<RoomPlacement> occupiedPositions = new List<RoomPlacement>();
 
+    public void Update()
+    {
+        if (generateMap)
+        {
+            LoadLevel(CurrentLevelIndex);
+            Debug.Log("Generating Map");
+            generateMap = false;
+        }
+    }
+
     public void GenerateMap()
     {
         ClearMap();
         Random.InitState(Seed);
 
-        Vector2Int currentPosition = Vector2Int.zero;
+        Vector2Int spawnPosition = Vector2Int.zero;
         occupiedPositions.Clear();
 
-        foreach (SO_Room room in RoomList)
+        // Place the Spawn Room explicitly at (0, 0)
+        SO_Room spawnRoom = RoomList[0];
+        PlaceRoomExact(spawnRoom, spawnPosition);
+
+        // Place the Boss Room at a distance specified by LevelDistance
+        SO_LevelInstance currentLevel = LevelInstances[CurrentLevelIndex];
+        SO_Room bossRoom = RoomList[RoomList.Count - 1];
+        Vector2Int bossRoomPosition = new Vector2Int(0, currentLevel.LevelDistance);
+        PlaceRoomExact(bossRoom, bossRoomPosition);
+
+        // Generate intermediary rooms
+        Vector2Int currentPosition = spawnPosition;
+        for (int i = 1; i < RoomList.Count - 1; i++)
         {
+            SO_Room room = RoomList[i];
             currentPosition = PlaceRoom(room, currentPosition);
             int intermediaryRoomCount = Random.Range(MinIntermediaryRooms, MaxIntermediaryRooms + 1);
             currentPosition = GeneratePath(currentPosition, intermediaryRoomCount);
+        }
+    }
+    private void PlaceRoomExact(SO_Room roomData, Vector2Int position)
+    {
+        occupiedPositions.Add(new RoomPlacement(position, roomData.Size));
+
+        GameObject roomObject = new GameObject(roomData.RoomName);
+        roomObject.transform.position = new Vector3(position.x, 0, position.y);
+        RoomInstance instance = roomObject.AddComponent<RoomInstance>();
+        instance.SetupRoom(roomData, position);
+
+        if (ShowDebug)
+        {
+            DebugRenderer.DrawRoom(position, roomData.Size, roomData.RoomName);
         }
     }
 
@@ -125,6 +153,7 @@ public class MapGenerator : MonoBehaviour
             Debug.LogError("Invalid level index");
             return;
         }
+
         SO_LevelInstance level = LevelInstances[levelIndex];
         CurrentLevelIndex = levelIndex;
         RoomList = new List<SO_Room>(level.RoomList);

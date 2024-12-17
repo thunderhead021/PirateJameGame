@@ -8,6 +8,4 @@ public class SO_Room : ScriptableObject
     public int MergeAmount;
     public Vector2Int Size;
     public GameObject RoomPrefab;
-    public int MinDistanceFromStart;
-    public int MaxDistanceFromStart;
 }
