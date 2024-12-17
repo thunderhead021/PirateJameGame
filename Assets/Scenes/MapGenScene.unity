@@ -515,14 +515,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RoomList: []
+  spawnRoom: {fileID: 11400000, guid: ebe7c6975d6bc4740bd4e1a5fc8e50ac, type: 2}
+  bossRoom: {fileID: 11400000, guid: 62e2f2db482251b43805d1f88ba19c45, type: 2}
   LevelInstances:
   - {fileID: 11400000, guid: 5d711292a9bde1a41a3f63c5e87c4e85, type: 2}
   CurrentLevelIndex: 0
   Seed: 1
   MinIntermediaryRooms: 1
   MaxIntermediaryRooms: 3
-  MinDistanceBetweenRooms: 20
-  MaxDistanceBetweenRooms: 50
+  RoomRandomnessMin: 2
+  RoomRandomnessMax: 5
   ShowDebug: 1
   generateMap: 0
 --- !u!1 &371435690

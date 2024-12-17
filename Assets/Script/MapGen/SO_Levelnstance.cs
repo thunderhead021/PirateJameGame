@@ -10,4 +10,6 @@ public class SO_LevelInstance : ScriptableObject
     public int MinIntermediaryRooms;
     public int MaxIntermediaryRooms;
     public int LevelDistance;
+    public int RoomRandomnessMax;
+    public int RoomRandomnessMin;
 }
