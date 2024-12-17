@@ -35,33 +35,33 @@ public class UIDisplay : MonoBehaviour
         switch (GridType) 
         {
             case GridType.Bag:
-                if (ItemManager.instance.items.Count > 0) 
+                if (PlayerManager.instance.ItemList.Count > 0) 
                 {
-                    for (int i = 0; i < ItemManager.instance.items.Count;) 
+                    for (int i = 0; i < PlayerManager.instance.ItemList.Count;) 
                     {
-                        var itemsList = GetSublist(ItemManager.instance.items, i, 4);
+                        var itemsList = GetSublist(PlayerManager.instance.ItemList, i, 4);
                         CreateDisplayGrid(itemsList.Cast<BaseObject>().ToList());
                         i += 4;
                     }
                 }
                 break;
             case GridType.Attack:
-                if (AttackManager.instance.attacks.Count > 0)
+                if (PlayerManager.instance.AttackList.Count > 0)
                 {
-                    for (int i = 0; i < AttackManager.instance.attacks.Count;)
+                    for (int i = 0; i < PlayerManager.instance.AttackList.Count;)
                     {
-                        var attacksList = GetSublist(AttackManager.instance.attacks, i, 4);
+                        var attacksList = GetSublist(PlayerManager.instance.AttackList, i, 4);
                         CreateDisplayGrid(attacksList.Cast<BaseObject>().ToList());
                         i += 4;
                     }
                 }
                 break;
             case GridType.Spell:
-                if (SpellManager.instance.spells.Count > 0)
+                if (PlayerManager.instance.SpellList.Count > 0)
                 {
-                    for (int i = 0; i < SpellManager.instance.spells.Count;)
+                    for (int i = 0; i < PlayerManager.instance.SpellList.Count;)
                     {
-                        var spellsList = GetSublist(SpellManager.instance.spells, i, 4);
+                        var spellsList = GetSublist(PlayerManager.instance.SpellList, i, 4);
                         CreateDisplayGrid(spellsList.Cast<BaseObject>().ToList());
                         i += 4;
                     }
@@ -74,11 +74,7 @@ public class UIDisplay : MonoBehaviour
     {
         GameObject newDisplayGridGO = Instantiate(DisplayGridGO);
 
-        List<DisplayInfo> displayInfos = new();
-        foreach (BaseObject displayObject in displayObjects)
-            displayInfos.Add(displayObject.DisplayInfo);
-
-        newDisplayGridGO.GetComponent<DisplayGrid>().SetInfo(displayInfos);
+        newDisplayGridGO.GetComponent<DisplayGrid>().SetInfo(displayObjects);
         SimpleScrollSnap.AddToBack(newDisplayGridGO);
         Destroy(newDisplayGridGO);
     }

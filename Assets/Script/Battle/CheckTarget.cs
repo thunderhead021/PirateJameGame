@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CheckTarget : MonoBehaviour
@@ -7,21 +8,26 @@ public class CheckTarget : MonoBehaviour
     {
         if (!BattleSceneManager.instance.canTarget)
             return;
-        else if (BattleSceneManager.instance.targeting.targetType == TargetType.None)
+        else if (BattleSceneManager.instance.targeting.curObject.targetType == TargetType.None)
             return;
-        else if (BattleSceneManager.instance.targeting.targetType == TargetType.Self)
+        else if (BattleSceneManager.instance.targeting.curObject.targetType == TargetType.Self)
             return;
-        else if (BattleSceneManager.instance.targeting.targetType == TargetType.All)
+        else if (BattleSceneManager.instance.targeting.curObject.targetType == TargetType.All)
             return;
-        else if (BattleSceneManager.instance.targeting.targetType == TargetType.Random)
+        else if (BattleSceneManager.instance.targeting.curObject.targetType == TargetType.Random)
             return;
 
         GetComponentInParent<Targeting>().curTarget = gameObject;
         GetComponentInParent<Targeting>().ChangeTarget();
     }
 
-    private void OnMouseExit()
+    private void OnMouseDown()
     {
-        //Debug.Log("exit " + this.gameObject.name);
+        if (BattleSceneManager.instance.canTarget)
+        {
+            BattleSceneManager.instance.targeting.ObjectDoThing();
+            BattleSceneManager.instance.Cancle();
+            BattleSceneManager.instance.turnUI.NextTurn();
+        }
     }
 }

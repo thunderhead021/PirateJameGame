@@ -5,18 +5,18 @@ public class DisplaySlot : MonoBehaviour
 {
     public TextMeshProUGUI text;
     public DisplayGrid displayGrid;
-    public static DisplayInfo DisplayInfo = new();
+    public BaseObject DisplayInfo;
 
-    public void SetSlot(DisplayInfo displayInfo, DisplayGrid displayGrid) 
+    public void SetSlot(BaseObject displayInfo, DisplayGrid displayGrid) 
     {
-        DisplayInfo = new(displayInfo.name, displayInfo.targetType); 
-        text.text = displayInfo.name;
+        DisplayInfo = displayInfo; 
+        text.text = displayInfo.infoName;
         this.displayGrid = displayGrid;
     }
 
     public void CallToBattleSceneManager() 
     {
-        BattleSceneManager.instance.targeting.targetType = DisplayInfo.targetType;
+        BattleSceneManager.instance.targeting.curObject = DisplayInfo;
         BattleSceneManager.instance.canTarget = true;
         BattleSceneManager.instance.Selected();
     }

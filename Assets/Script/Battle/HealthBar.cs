@@ -7,7 +7,7 @@ public class HealthBar : MonoBehaviour
     public Slider healthBar;
     public GameObject parent;
 
-    public void ModifyHealth(float amount) 
+    public virtual void ModifyHealth(float amount) 
     {
         maxHealth -= amount;
         maxHealth = Mathf.Max(maxHealth, 0); 
