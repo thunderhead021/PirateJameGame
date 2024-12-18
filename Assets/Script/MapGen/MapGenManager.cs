@@ -6,6 +6,7 @@ public class MapGenerator : MonoBehaviour
     public List<SO_Room> RoomList;
     public SO_Room spawnRoom;
     public SO_Room bossRoom;
+    public SO_Room hallwayRoom;
     public List<SO_LevelInstance> LevelInstances;
     public int CurrentLevelIndex = 0;
     public int Seed;
@@ -15,8 +16,8 @@ public class MapGenerator : MonoBehaviour
     public int RoomRandomnessMax = 5;
     public bool ShowDebug = true;
     public bool generateMap = false;
-    private List<Vector3> exits;
-    private List<Vector3> entrys;
+    private List<Vector2Int> exits;
+    private List<Vector2Int> entrys;
     private Vector3 bossEntry;
     private float pathRandom = 0.5f;
 
@@ -51,8 +52,8 @@ public class MapGenerator : MonoBehaviour
         ClearMap();
         Random.InitState(Seed);
 
-        exits = new List<Vector3>();
-        entrys = new List<Vector3>();
+        exits = new List<Vector2Int>();
+        entrys = new List<Vector2Int>();
         bossEntry = Vector3.zero;
 
         Vector2Int spawnPosition = Vector2Int.zero;
@@ -111,15 +112,16 @@ public class MapGenerator : MonoBehaviour
     {
         foreach (RoomPlacement placement in occupiedPositions)
         {
-            if (position.x < placement.Position.x + placement.Size.x + RoomRandomnessMin &&
-                position.x + size.x + RoomRandomnessMin > placement.Position.x &&
-                position.y < placement.Position.y + placement.Size.y + RoomRandomnessMin &&
-                position.y + size.y + RoomRandomnessMin > placement.Position.y)
+            // Check for overlap
+            if (position.x < placement.Position.x + placement.Size.x &&
+                position.x + size.x > placement.Position.x &&
+                position.y < placement.Position.y + placement.Size.y &&
+                position.y + size.y > placement.Position.y)
             {
-                return true;
+                return true; // Overlaps
             }
         }
-        return false;
+        return false; // No overlap
     }
     public void LoadLevel(int levelIndex)
 {
@@ -170,19 +172,21 @@ public class MapGenerator : MonoBehaviour
                 GenerateEntryForRoom(roomPlacement);
             }
         }
-        GeneratePaths();
+        FindPoints();
     }
-    private void GeneratePaths()
+  
+    private void FindPoints()
     {
         Debug.Log($"finished Generating entrys {entrys.Count} exits{exits.Count} boss {bossEntry}");
-         foreach (var exit in exits)
+
+        foreach (var exit in exits)
         {
-            Vector3? closestEntry = null;
+            Vector2Int? closestEntry = null;
             float closestDistance = float.MaxValue;
 
             foreach (var entry in entrys)
             {
-                float distance = Vector3.Distance(exit, entry);
+                float distance = Vector2.Distance(exit, entry);
 
                 if (distance < closestDistance)
                 {
@@ -195,64 +199,13 @@ public class MapGenerator : MonoBehaviour
             {
                 Debug.Log($"Closest entry to exit at {exit} is at {closestEntry.Value} with distance {closestDistance}");
 
-                DrawModularPath(exit, closestEntry.Value,pathRandom);
                 entrys.Remove(closestEntry.Value);
             }
             else
             {
-                DrawModularPath(exit, bossEntry,pathRandom);
                 Debug.LogWarning($"No entry found for exit at {exit}");
             }
         }
-    }
-    public static void DrawModularPath(Vector3 exit, Vector3 entry, float pathRandomness)
-    {
-        Debug.Log($"Generating modular path from {exit} to {entry}");
-
-        Vector3 currentPosition = exit;
-        float stepLength = 5f;
-
-        while (Mathf.Abs(currentPosition.x - entry.x) > stepLength || Mathf.Abs(currentPosition.z - entry.z) > stepLength)
-        {
-            Vector3 nextPosition = currentPosition;
-
-            float randomThreshold = Random.Range(0f, 1f) * pathRandomness;
-            if (Random.value < randomThreshold)
-            {
-                if (Mathf.Abs(currentPosition.x - entry.x) > stepLength)
-                {
-                    nextPosition.z += (currentPosition.z < entry.z) ? stepLength : -stepLength;
-                    
-                }
-                // Otherwise, move along z-axis
-                else if (Mathf.Abs(currentPosition.z - entry.z) > stepLength)
-                {
-                    nextPosition.x += (currentPosition.x < entry.x) ? stepLength : -stepLength;
-                }
-
-            }
-            else
-            {
-                // Move along x-axis if not aligned
-                if (Mathf.Abs(currentPosition.x - entry.x) > stepLength)
-                {
-                    nextPosition.x += (currentPosition.x < entry.x) ? stepLength : -stepLength;
-                }
-                // Otherwise, move along z-axis
-                else if (Mathf.Abs(currentPosition.z - entry.z) > stepLength)
-                {
-                    nextPosition.z += (currentPosition.z < entry.z) ? stepLength : -stepLength;
-                }
-            }
-            // Draw the modular segment
-            Debug.DrawLine(new Vector3(currentPosition.x, 1, currentPosition.z), new Vector3(nextPosition.x, 1, nextPosition.z), Color.green, 60f);
-
-            // Update current position
-            currentPosition = nextPosition;
-        }
-
-        // Draw final segment to ensure the path connects exactly to the entry
-        Debug.DrawLine(new Vector3(currentPosition.x, 1, currentPosition.z), new Vector3(entry.x, 1, entry.z), Color.green, 60f);
     }
     private void GenerateExitForRoom(RoomPlacement startRoom)
     {
@@ -261,12 +214,12 @@ public class MapGenerator : MonoBehaviour
         if (directionOffset.HasValue)
         {
             Vector2 position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
-
+            Vector2Int positionInt = new Vector2Int((int)position.x, (int)position.y);
             if (ShowDebug)
             {
                 DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.red);
             }
-            exits.Add(new Vector3(position.x, 0, position.y));
+            exits.Add(positionInt);
             startRoom.roomData.SetDirection(directionOffset.Value, false);
         }
         else
@@ -304,9 +257,12 @@ public class MapGenerator : MonoBehaviour
         {
             DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
         }
-
-        entrys.Add(new Vector3(position.x, 0, position.y));
-
+        entrys.Add(new Vector2Int((int)position.x, (int)position.y));
         startRoom.roomData.SetDirection(directionOffset.Value, false);
     }
+
+    public int gridSize = 5; // Distance between points
+    public Vector2Int gridBounds = new Vector2Int(100, 100); // Grid size (width x height)
+    private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
+    private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
 }
