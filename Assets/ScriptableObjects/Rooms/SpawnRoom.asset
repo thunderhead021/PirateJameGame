@@ -15,7 +15,7 @@ MonoBehaviour:
   RoomName: SpawnRoom
   SplitAmount: 3
   MergeAmount: 0
-  Size: {x: 6, y: 6}
+  Size: {x: 10, y: 10}
   RoomPrefab: {fileID: 3490285591398873037, guid: f7e123f2e97b33847985c5b3488672f4, type: 3}
   directionStates:
   - direction: 0
