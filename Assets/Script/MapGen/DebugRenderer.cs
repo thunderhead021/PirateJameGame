@@ -10,9 +10,10 @@ public static class DebugRenderer
         Debug.DrawLine(new Vector3(position.x, 0, position.y + size.y), new Vector3(position.x + size.x, 0, position.y + size.y), Color.green, 60f);
     }
 
-    public static void DrawPath(Vector2Int start, Vector2Int end)
+    public static void DrawPath(Vector3 start, Vector3 end)
     {
-        Debug.DrawLine(new Vector3(start.x, 0, start.y), new Vector3(end.x, 0, end.y), Color.red, 10f);
+        Debug.Log($"DrawingPath{start} to {end}");
+        Debug.DrawLine(new Vector3(start.x, 1, start.z), new Vector3(end.x, 1, end.z), Color.green, 60f);
     }
 
     public static void ClearDebug()

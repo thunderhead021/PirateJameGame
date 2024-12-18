@@ -23,7 +23,7 @@ public class SO_Room : ScriptableObject
     [SerializeField]
     public List<DirectionState> directionStates = new List<DirectionState>();
 
-    public Vector2 GetRandomEnabledDirection()
+    public Vector2? GetRandomEnabledDirection()
     {
         // Filter the enabled directions
         List<Direction> enabledDirections = new List<Direction>();
@@ -42,8 +42,8 @@ public class SO_Room : ScriptableObject
             return GetDirectionOffset(randomDirection);
         }
 
-        Debug.LogError($"Can not find enabled Direction {RoomName}");
-        return Vector2.zero; // No enabled directions, return default
+        Debug.LogWarning($"Can not find enabled Direction {RoomName}");
+        return null; // No enabled directions, return default
     }
 
     public void SetDirection(Vector2 directionVector, bool state)
@@ -55,11 +55,10 @@ public class SO_Room : ScriptableObject
             if (dirState.direction == direction)
             {
                 dirState.isActive = state;
-                Debug.Log($"Set {direction} to {state}");
                 return;
             }
         }
-        Debug.LogError("Direction not found or state not set.");
+        Debug.LogWarning("Direction not found or state not set.");
         
     }
 
@@ -69,7 +68,7 @@ public class SO_Room : ScriptableObject
         if (directionVector.x > 0 && directionVector.y == 0) return Direction.East;
         if (directionVector.x == 0 && directionVector.y < 0) return Direction.South;
         if (directionVector.x < 0 && directionVector.y == 0) return Direction.West;
-        Debug.LogError($"Can no Identify{directionVector}");
+        Debug.LogWarning($"Can no Identify{directionVector}");
         return Direction.North; // Default direction fallback
     }
 
@@ -90,34 +89,35 @@ public class SO_Room : ScriptableObject
         }
     }
     public SO_Room Clone()
-{
-    // Create a new instance
-    SO_Room clone = ScriptableObject.CreateInstance<SO_Room>();
-    clone.Size = this.Size;
-    clone.SplitAmount = this.SplitAmount;
-    clone.RoomPrefab = RoomPrefab;
-    
-    // Copy directionStates
-    clone.directionStates = new List<DirectionState>();
-    foreach (var dirState in this.directionStates)
     {
-        DirectionState clonedDirState = new DirectionState
+        // Create a new instance
+        SO_Room clone = ScriptableObject.CreateInstance<SO_Room>();
+        clone.Size = this.Size;
+        clone.SplitAmount = this.SplitAmount;
+        clone.MergeAmount = this.MergeAmount;
+        clone.RoomPrefab = RoomPrefab;
+        
+        // Copy directionStates
+        clone.directionStates = new List<DirectionState>();
+        foreach (var dirState in this.directionStates)
         {
-            direction = dirState.direction,
-            isActive = dirState.isActive
-        };
-        clone.directionStates.Add(clonedDirState);
-    }
+            DirectionState clonedDirState = new DirectionState
+            {
+                direction = dirState.direction,
+                isActive = dirState.isActive
+            };
+            clone.directionStates.Add(clonedDirState);
+        }
 
-    // Update the name with a unique identifier
-    if (!cloneCounters.ContainsKey(RoomName))
-    {
-        cloneCounters[RoomName] = 0;
-    }
-    cloneCounters[RoomName]++;
-    clone.RoomName = $"{RoomName}_Clone{cloneCounters[RoomName]}";
-    clone.name = clone.RoomName;
+        // Update the name with a unique identifier
+        if (!cloneCounters.ContainsKey(RoomName))
+        {
+            cloneCounters[RoomName] = 0;
+        }
+        cloneCounters[RoomName]++;
+        clone.RoomName = $"{RoomName}_Clone{cloneCounters[RoomName]}";
+        clone.name = clone.RoomName;
 
-    return clone;
-}
+        return clone;
+    }
 }

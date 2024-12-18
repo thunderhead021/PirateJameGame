@@ -18,6 +18,9 @@ public class MapGenerator : MonoBehaviour
     public int RoomRandomnessMax = 5;
     public bool ShowDebug = true;
     public bool generateMap = false;
+    private List<Vector3> exits;
+    private List<Vector3> entrys;
+    private Vector3 bossEntry;
 
     private struct RoomPlacement
     {
@@ -50,6 +53,10 @@ public class MapGenerator : MonoBehaviour
         ClearMap();
         Random.InitState(Seed);
 
+        exits = new List<Vector3>();
+        entrys = new List<Vector3>();
+        bossEntry = Vector3.zero;
+
         Vector2Int spawnPosition = Vector2Int.zero;
         occupiedPositions.Clear();
 
@@ -64,7 +71,7 @@ public class MapGenerator : MonoBehaviour
             PlaceRoom(room, spawnPosition);
         }
 
-        GeneratePaths();
+        GeneratePoints();
     }
 
     private void InstRoom(SO_Room roomData, Vector2Int position)
@@ -155,42 +162,66 @@ public class MapGenerator : MonoBehaviour
         DebugRenderer.ClearDebug();
     }
 
-    public void GeneratePaths()
+    public void GeneratePoints()
     {
         foreach (var roomPlacement in occupiedPositions)
         {
             for (int i = 0; i < roomPlacement.roomData.SplitAmount; i++)
             {
-                GeneratePathForRoom(roomPlacement);
-                StartCoroutine(DelayBeforeNextPath(2.0f)); // 2-second delay
+                GenerateExitForRoom(roomPlacement);
+            }
+            for (int i = 0; i < roomPlacement.roomData.MergeAmount; i++)
+            {
+                GenerateEntryForRoom(roomPlacement);
             }
         }
+        GeneratePaths();
     }
-    
-    private IEnumerator DelayBeforeNextPath(float delay)
+    private void GeneratePaths()
     {
-        yield return new WaitForSeconds(delay); // Wait for the specified time
+        Debug.Log($"finished Generating entrys {entrys.Count} exits{exits.Count} boss {bossEntry}");
+         foreach (var exit in exits)
+        {
+            Vector3? closestEntry = null;
+            float closestDistance = float.MaxValue;
+
+            foreach (var entry in entrys)
+            {
+                float distance = Vector3.Distance(exit, entry);
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestEntry = entry;
+                }
+            }
+
+            if (closestEntry.HasValue)
+            {
+                Debug.Log($"Closest entry to exit at {exit} is at {closestEntry.Value} with distance {closestDistance}");
+                DebugRenderer.DrawPath(exit, closestEntry.Value);
+                entrys.Remove(closestEntry.Value);
+            }
+            else
+            {
+                DebugRenderer.DrawPath(exit, bossEntry);
+                Debug.LogWarning($"No entry found for exit at {exit}");
+            }
     }
-    
-    private void GeneratePathForRoom(RoomPlacement startRoom)
+    }
+    private void GenerateExitForRoom(RoomPlacement startRoom)
     {
-        // Get a random enabled direction as Vector2 offset
         Vector2? directionOffset = startRoom.roomData.GetRandomEnabledDirection();
-        
+
         if (directionOffset.HasValue)
         {
             Vector2 position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
-            Debug.Log(directionOffset.Value);
-            Debug.Log(startRoom.roomData.Size /2);
-            Debug.Log(position);
 
-            // Spawn a debug sphere at the midpoint of the edge in the chosen direction
             if (ShowDebug)
             {
                 DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.red);
             }
-
-            // Convert the Vector2 direction back to Direction enum and set it as inactive
+            exits.Add(new Vector3(position.x, 0, position.y));
             startRoom.roomData.SetDirection(directionOffset.Value, false);
         }
         else
@@ -198,5 +229,39 @@ public class MapGenerator : MonoBehaviour
             Debug.LogWarning("No enabled direction found for room: " + startRoom.roomData.RoomName);
         }
     }
- 
+    private void GenerateEntryForRoom(RoomPlacement startRoom)
+    {
+        // Get a random enabled direction as Vector2 offset
+        Vector2? directionOffset = startRoom.roomData.GetRandomEnabledDirection();
+        if (!directionOffset.HasValue)
+        {
+            Debug.LogWarning("No enabled direction found for room: " + startRoom.roomData.RoomName);
+            return;
+        }
+
+        Vector2 position = Vector2.zero;
+        if(startRoom.roomData.MergeAmount > 4)
+        {
+            Debug.Log($"MergeEverything{startRoom.roomData.name}{directionOffset.HasValue}");
+
+            position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) +5));
+            if (ShowDebug)
+            {
+                DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
+            }
+            bossEntry = new Vector3(position.x, 0, position.y);
+            startRoom.roomData.SetDirection(directionOffset.Value, false);
+            return;
+        }
+        
+        position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
+        if (ShowDebug)
+        {
+            DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
+        }
+
+        entrys.Add(new Vector3(position.x, 0, position.y));
+
+        startRoom.roomData.SetDirection(directionOffset.Value, false);
+    }
 }
