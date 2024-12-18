@@ -517,6 +517,7 @@ MonoBehaviour:
   RoomList: []
   spawnRoom: {fileID: 11400000, guid: ebe7c6975d6bc4740bd4e1a5fc8e50ac, type: 2}
   bossRoom: {fileID: 11400000, guid: 62e2f2db482251b43805d1f88ba19c45, type: 2}
+  hallwayRoom: {fileID: 11400000, guid: a7e9ddfa5e9c4a04095184a0cc70d769, type: 2}
   LevelInstances:
   - {fileID: 11400000, guid: 5d711292a9bde1a41a3f63c5e87c4e85, type: 2}
   CurrentLevelIndex: 0
@@ -526,7 +527,9 @@ MonoBehaviour:
   RoomRandomnessMin: 2
   RoomRandomnessMax: 5
   ShowDebug: 1
-  generateMap: 0
+  generateMap: 1
+  gridSize: 5
+  gridBounds: {x: 200, y: 400}
 --- !u!1 &371435690
 GameObject:
   m_ObjectHideFlags: 0

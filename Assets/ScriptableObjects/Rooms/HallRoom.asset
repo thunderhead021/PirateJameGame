@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45e19c7e9742ce7469f57464f42f1076, type: 3}
   m_Name: HallRoom
   m_EditorClassIdentifier: 
-  RoomName: 
+  RoomName: Hallway
   SplitAmount: 0
   MergeAmount: 0
-  Size: {x: 0, y: 0}
+  Size: {x: 5, y: 5}
   RoomPrefab: {fileID: 0}
   directionStates: []

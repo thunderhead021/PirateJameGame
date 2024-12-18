@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -20,6 +21,17 @@ public class MapGenerator : MonoBehaviour
     private List<Vector2Int> entrys;
     private Vector3 bossEntry;
     private float pathRandom = 0.5f;
+    Vector2Int[] offsets = new Vector2Int[]
+    {
+        new Vector2Int(-5, 0),  // Left
+        new Vector2Int(5, 0),   // Right
+        new Vector2Int(0, -5),  // Down
+        new Vector2Int(0, 5),   // Up
+        new Vector2Int(-5, -5), // Bottom-left
+        new Vector2Int(5, -5),  // Bottom-right
+        new Vector2Int(-5, 5),  // Top-left
+        new Vector2Int(5, 5)    // Top-right
+    };
 
     private struct RoomPlacement
     {
@@ -34,8 +46,11 @@ public class MapGenerator : MonoBehaviour
             roomData = data;
         }
     }
-
     private List<RoomPlacement> occupiedPositions = new List<RoomPlacement>();
+    public int gridSize = 5; // Distance between points
+    public Vector2Int gridBounds = new Vector2Int(200,400 ); // Grid size (width x height)
+    private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
+    private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
 
     public void Update()
     {
@@ -46,7 +61,6 @@ public class MapGenerator : MonoBehaviour
             generateMap = false;
         }
     }
-
     public void GenerateMap()
     {
         ClearMap();
@@ -58,6 +72,8 @@ public class MapGenerator : MonoBehaviour
 
         Vector2Int spawnPosition = Vector2Int.zero;
         occupiedPositions.Clear();
+        
+        InitializePointCloud();
 
         PlaceRoomExact(spawnRoom, spawnPosition);
 
@@ -72,7 +88,6 @@ public class MapGenerator : MonoBehaviour
 
         GeneratePoints();
     }
-
     private void InstRoom(SO_Room roomData, Vector2Int position)
     {
         GameObject roomObject = Instantiate(roomData.RoomPrefab);
@@ -80,7 +95,23 @@ public class MapGenerator : MonoBehaviour
         roomObject.transform.position = new Vector3(position.x, 0, position.y);
         RoomInstance instance = roomObject.AddComponent<RoomInstance>();
         instance.SetupRoom(roomData, position);
-        occupiedPositions.Add(new RoomPlacement(position, roomData.Size, roomData));  
+        occupiedPositions.Add(new RoomPlacement(position, roomData.Size, roomData));
+
+        // Check if the point exists in the point cloud
+        if (pointCloud.ContainsKey(position))
+        {
+            pointCloud[position] = false; // Mark it as unavailable
+        }
+        foreach (var offset in offsets)
+        {
+            Vector2Int surroundingPoint = position + offset;
+
+            if (pointCloud.ContainsKey(surroundingPoint))
+            {
+                pointCloud[surroundingPoint] = false; // Mark surrounding point as unavailable
+            }
+        }
+        
     }
     private void PlaceRoomExact(SO_Room roomData, Vector2Int position)
     {
@@ -124,33 +155,34 @@ public class MapGenerator : MonoBehaviour
         return false; // No overlap
     }
     public void LoadLevel(int levelIndex)
-{
-    if (levelIndex < 0 || levelIndex >= LevelInstances.Count)
     {
-        Debug.LogError("Invalid level index");
-        return;
+        if (levelIndex < 0 || levelIndex >= LevelInstances.Count)
+        {
+            Debug.LogError("Invalid level index");
+            return;
+        }
+
+        SO_LevelInstance level = LevelInstances[levelIndex];
+        CurrentLevelIndex = levelIndex;
+
+        gridBounds.y = LevelInstances[levelIndex].LevelDistance;
+        // Clone each room from the level's RoomList and add it to RoomList
+        spawnRoom = spawnRoom.Clone();
+        bossRoom = bossRoom.Clone();
+        RoomList = new List<SO_Room>();
+        foreach (var room in level.RoomList)
+        {
+            RoomList.Add(room.Clone());
+        }
+
+        Seed = level.Seed;
+        MinIntermediaryRooms = level.MinIntermediaryRooms;
+        MaxIntermediaryRooms = level.MaxIntermediaryRooms;
+        RoomRandomnessMin = level.RoomRandomnessMin;
+        RoomRandomnessMax = level.RoomRandomnessMax;
+
+        GenerateMap();
     }
-
-    SO_LevelInstance level = LevelInstances[levelIndex];
-    CurrentLevelIndex = levelIndex;
-
-    // Clone each room from the level's RoomList and add it to RoomList
-    spawnRoom = spawnRoom.Clone();
-    bossRoom = bossRoom.Clone();
-    RoomList = new List<SO_Room>();
-    foreach (var room in level.RoomList)
-    {
-        RoomList.Add(room.Clone());
-    }
-
-    Seed = level.Seed;
-    MinIntermediaryRooms = level.MinIntermediaryRooms;
-    MaxIntermediaryRooms = level.MaxIntermediaryRooms;
-    RoomRandomnessMin = level.RoomRandomnessMin;
-    RoomRandomnessMax = level.RoomRandomnessMax;
-
-    GenerateMap();
-}
     public void ClearMap()
     {
         foreach (Transform child in transform)
@@ -172,9 +204,10 @@ public class MapGenerator : MonoBehaviour
                 GenerateEntryForRoom(roomPlacement);
             }
         }
+        
         FindPoints();
+        
     }
-  
     private void FindPoints()
     {
         Debug.Log($"finished Generating entrys {entrys.Count} exits{exits.Count} boss {bossEntry}");
@@ -198,7 +231,8 @@ public class MapGenerator : MonoBehaviour
             if (closestEntry.HasValue)
             {
                 Debug.Log($"Closest entry to exit at {exit} is at {closestEntry.Value} with distance {closestDistance}");
-
+                
+                GeneratePath(exit, closestEntry.Value);
                 entrys.Remove(closestEntry.Value);
             }
             else
@@ -213,7 +247,7 @@ public class MapGenerator : MonoBehaviour
 
         if (directionOffset.HasValue)
         {
-            Vector2 position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
+            Vector2 position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2)+ 5));
             Vector2Int positionInt = new Vector2Int((int)position.x, (int)position.y);
             if (ShowDebug)
             {
@@ -242,7 +276,7 @@ public class MapGenerator : MonoBehaviour
         {
             Debug.Log($"MergeEverything{startRoom.roomData.name}{directionOffset.HasValue}");
 
-            position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) +5));
+            position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) + 5));
             if (ShowDebug)
             {
                 DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
@@ -252,7 +286,7 @@ public class MapGenerator : MonoBehaviour
             return;
         }
         
-        position = startRoom.Position + (directionOffset.Value * (startRoom.roomData.Size.x / 2));
+        position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) + 5));
         if (ShowDebug)
         {
             DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
@@ -260,9 +294,116 @@ public class MapGenerator : MonoBehaviour
         entrys.Add(new Vector2Int((int)position.x, (int)position.y));
         startRoom.roomData.SetDirection(directionOffset.Value, false);
     }
+    void InitializePointCloud()
+    {
+        for (int y = 0; y <= gridBounds.y; y += gridSize) // Y-direction loop
+        {
+            for (int x = -gridBounds.x / 2; x <= gridBounds.x / 2; x += gridSize) // X-direction loop
+            {
+                Vector2Int point = new Vector2Int(x, y); // Replace Z with Y
+                pointCloud[point] = true; // All points start as available
+            }
+        }
+    }
+    void GeneratePath(Vector2Int exit, Vector2Int entry)
+    {
+        if (!pointCloud.ContainsKey(exit) || !pointCloud.ContainsKey(entry))
+        {
+            Debug.LogError($"Exit or Entry point is outside the grid bounds: {exit}, {entry}");
+            return;
+        }
 
-    public int gridSize = 5; // Distance between points
-    public Vector2Int gridBounds = new Vector2Int(100, 100); // Grid size (width x height)
-    private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
-    private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
+        List<Vector2Int> path = new List<Vector2Int>();
+        Vector2Int currentPoint = exit;
+
+        int retryLimit = 3; // Number of additional attempts after no neighbors are found
+        int retryCount = 0;
+
+        while (currentPoint != entry)
+        {
+            path.Add(currentPoint);
+            Vector2Int lastpoint = currentPoint;
+            pointCloud[currentPoint] = false; // Mark as used
+
+            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint);
+
+            if (neighbors.Count == 0)
+            {
+                if (retryCount >= retryLimit)
+                {
+                    Debug.LogWarning("Exceeded retry limit. Path generation stopped.");
+                    return; // Stop if retry limit is reached
+                }
+
+                retryCount++;
+                Debug.LogWarning($"No neighbors found. Retrying... ({retryCount}/{retryLimit})");
+                continue; // Skip to the next iteration to try again
+            }
+
+            // Reset retry count on successful neighbor discovery
+            retryCount = 0;
+
+            float closestDist = neighbors.Min(p => Vector2Int.Distance(p, entry));
+            currentPoint = neighbors.Where(p => Mathf.Approximately(Vector2Int.Distance(p, entry), closestDist)).OrderBy(_ => UnityEngine.Random.value).First();
+        }
+
+        path.Add(entry);
+        pointCloud[entry] = false; // Mark entry as used
+
+        completedPaths.Add(path);
+        MarkPathAsUsed(path);
+    }
+    List<Vector2Int> GetAvailableNeighbors(Vector2Int point)
+    {
+        int tolGridSize = gridSize;
+
+        List<Vector2Int> neighbors = new List<Vector2Int>
+        {
+            point + new Vector2Int(tolGridSize, 0),
+            point + new Vector2Int(-tolGridSize, 0),
+            point + new Vector2Int(0, tolGridSize),
+            point + new Vector2Int(0, -tolGridSize),
+        };
+
+        return neighbors.Where(p => pointCloud.ContainsKey(p) && pointCloud[p]).ToList();
+    }
+    
+    void MarkPathAsUsed(List<Vector2Int> path)
+    {
+        foreach (var point in path)
+        {
+            pointCloud[point] = false;
+        }
+    }
+    void Shuffle<T>(List<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i + 1);
+            T temp = list[i];
+            list[i] = list[randomIndex];
+            list[randomIndex] = temp;
+        }
+    }
+    void OnDrawGizmos()
+    {
+        if (pointCloud == null || pointCloud.Count == 0) return;
+
+        Gizmos.color = Color.gray;
+        foreach (var point in pointCloud)
+        {
+            if (point.Value) // Available points
+                Gizmos.DrawSphere(new Vector3(point.Key.x, 0, point.Key.y), 0.5f);
+        }
+
+        Gizmos.color = Color.green;
+        foreach (var path in completedPaths)
+        {
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                Gizmos.DrawLine(new Vector3(path[i].x, 0, path[i].y), new Vector3(path[i + 1].x, 0, path[i + 1].y));
+            }
+        }
+    }
+
 }
