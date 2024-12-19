@@ -7,8 +7,6 @@ public class SO_LevelInstance : ScriptableObject
     public string LevelName;
     public List<SO_Room> RoomList;
     public int Seed;
-    public int MinIntermediaryRooms;
-    public int MaxIntermediaryRooms;
     public int LevelDistance;
     public int RoomRandomnessMax;
     public int RoomRandomnessMin;

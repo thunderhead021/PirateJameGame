@@ -48,7 +48,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
     private List<RoomPlacement> occupiedPositions = new List<RoomPlacement>();
-    public int gridSize = 5; // Distance between points
+    public int gridSize = 10; // Distance between points
     public Vector2Int gridBounds = new Vector2Int(200,400 ); // Grid size (width x height)
     private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
     private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
@@ -130,7 +130,7 @@ public class MapGenerator : MonoBehaviour
         int positionY = Mathf.RoundToInt(totalDistance * t);
         Debug.Log(t);
 
-        Vector2Int position = new Vector2Int(Random.Range(-RoomRandomnessMax, RoomRandomnessMax), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax));
+        Vector2Int position = new Vector2Int(Random.Range(-(RoomRandomnessMax + 10), RoomRandomnessMax + 10), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax));
         position.x = Mathf.RoundToInt(position.x / 10) * 10;  // Clamp X to multiples of 10
         position.y = Mathf.RoundToInt(position.y / 10) * 10; // Clamp Y to multiples of 10
 
@@ -179,8 +179,6 @@ public class MapGenerator : MonoBehaviour
         }
 
         Seed = level.Seed;
-        MinIntermediaryRooms = level.MinIntermediaryRooms;
-        MaxIntermediaryRooms = level.MaxIntermediaryRooms;
         RoomRandomnessMax = level.RoomRandomnessMax;
 
         GenerateMap();
@@ -206,7 +204,6 @@ public class MapGenerator : MonoBehaviour
                 GenerateEntryForRoom(roomPlacement);
             }
         }
-        
         FindPoints();
         
     }
@@ -243,11 +240,11 @@ public class MapGenerator : MonoBehaviour
             }
             
         }
-        foreach (var room in completedPaths)
+        foreach (var path in completedPaths)
         {
-            for (int i = 0; i < room.Count - 1; i++)
+            for (int i = 0; i < path.Count - 1; i++)
             {
-                InstRoom(hallwayRoom, room[i]);
+                InstRoom(hallwayRoom, path[i]);
             }
         }
     }
@@ -301,7 +298,8 @@ public class MapGenerator : MonoBehaviour
         {
             DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
         }
-        entrys.Add(new Vector2Int((int)position.x, (int)position.y));
+        Vector2Int positionInt = new Vector2Int((int)position.x, (int)position.y);
+        entrys.Add(positionInt);
         startRoom.roomData.SetDirection(directionOffset.Value, false);
     }
     void InitializePointCloud()
@@ -391,8 +389,6 @@ public class MapGenerator : MonoBehaviour
         path.Add(entry);
         completedPaths.Add(path);
         MarkPathAsUsed(path);
-
-
     }
 
     /// <summary>

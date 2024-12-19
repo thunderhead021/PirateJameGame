@@ -15,6 +15,6 @@ MonoBehaviour:
   RoomName: Hallway
   SplitAmount: 0
   MergeAmount: 0
-  Size: {x: 5, y: 5}
+  Size: {x: 10, y: 10}
   RoomPrefab: {fileID: 3490285591398873037, guid: 43012aac9520aee4390dbe0efdc518a4, type: 3}
   directionStates: []
