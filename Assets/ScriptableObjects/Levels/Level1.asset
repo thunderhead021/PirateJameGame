@@ -21,6 +21,6 @@ MonoBehaviour:
   Seed: 20
   MinIntermediaryRooms: 1
   MaxIntermediaryRooms: 3
-  LevelDistance: 400
-  RoomRandomnessMax: 50
-  RoomRandomnessMin: 20
+  LevelDistance: 150
+  RoomRandomnessMax: 20
+  RoomRandomnessMin: 0

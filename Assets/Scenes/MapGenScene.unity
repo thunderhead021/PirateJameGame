@@ -524,10 +524,11 @@ MonoBehaviour:
   Seed: 1
   MinIntermediaryRooms: 1
   MaxIntermediaryRooms: 3
-  RoomRandomnessMin: 2
-  RoomRandomnessMax: 5
+  RoomRandomnessMax: 10
   ShowDebug: 1
   generateMap: 1
+  pathRandom: 0.35
+  maxPathLength: 30
   gridSize: 5
   gridBounds: {x: 200, y: 400}
 --- !u!1 &371435690

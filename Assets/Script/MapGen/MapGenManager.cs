@@ -13,14 +13,15 @@ public class MapGenerator : MonoBehaviour
     public int Seed;
     public int MinIntermediaryRooms = 1;
     public int MaxIntermediaryRooms = 3;
-    public int RoomRandomnessMin = 2;
     public int RoomRandomnessMax = 5;
     public bool ShowDebug = true;
     public bool generateMap = false;
     private List<Vector2Int> exits;
     private List<Vector2Int> entrys;
     private Vector2Int bossEntry;
-    private float pathRandom = 0.5f;
+    [SerializeField]private float pathRandom = 0.5f;
+    [SerializeField]private int maxPathLength = 80;
+
     Vector2Int[] offsets = new Vector2Int[]
     {
         new Vector2Int(-5, 0),  // Left
@@ -91,6 +92,7 @@ public class MapGenerator : MonoBehaviour
     private void InstRoom(SO_Room roomData, Vector2Int position)
     {
         GameObject roomObject = Instantiate(roomData.RoomPrefab);
+        roomObject.transform.parent = this.gameObject.transform;
         roomObject.name = roomData.RoomName;
         roomObject.transform.position = new Vector3(position.x, 0, position.y);
         RoomInstance instance = roomObject.AddComponent<RoomInstance>();
@@ -126,8 +128,9 @@ public class MapGenerator : MonoBehaviour
         int roomIndex = occupiedPositions.Count - 1;
         float t = (float)roomIndex / (RoomList.Count + 1);
         int positionY = Mathf.RoundToInt(totalDistance * t);
+        Debug.Log(t);
 
-        Vector2Int position = new Vector2Int(Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax + 1));
+        Vector2Int position = new Vector2Int(Random.Range(-RoomRandomnessMax, RoomRandomnessMax), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax));
         position.x = Mathf.RoundToInt(position.x / 10) * 10;  // Clamp X to multiples of 10
         position.y = Mathf.RoundToInt(position.y / 10) * 10; // Clamp Y to multiples of 10
 
@@ -178,7 +181,6 @@ public class MapGenerator : MonoBehaviour
         Seed = level.Seed;
         MinIntermediaryRooms = level.MinIntermediaryRooms;
         MaxIntermediaryRooms = level.MaxIntermediaryRooms;
-        RoomRandomnessMin = level.RoomRandomnessMin;
         RoomRandomnessMax = level.RoomRandomnessMax;
 
         GenerateMap();
@@ -232,12 +234,20 @@ public class MapGenerator : MonoBehaviour
             {
                 Debug.Log($"Closest entry to exit at {exit} is at {closestEntry.Value} with distance {closestDistance}");
                 
-                GeneratePath(exit, closestEntry.Value);
+                GeneratePath(exit, closestEntry.Value, pathRandom, maxPathLength);
                 entrys.Remove(closestEntry.Value);
             }
             else
             {
-                GeneratePath(exit, bossEntry);
+                GeneratePath(exit, bossEntry, pathRandom, maxPathLength);
+            }
+            
+        }
+        foreach (var room in completedPaths)
+        {
+            for (int i = 0; i < room.Count - 1; i++)
+            {
+                InstRoom(hallwayRoom, room[i]);
             }
         }
     }
@@ -305,7 +315,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-    void GeneratePath(Vector2Int exit, Vector2Int entry)
+    void GeneratePath(Vector2Int exit, Vector2Int entry, float randomnessValue, int maxPathLength)
     {
         if (!pointCloud.ContainsKey(exit) || !pointCloud.ContainsKey(entry))
         {
@@ -319,24 +329,40 @@ public class MapGenerator : MonoBehaviour
         int retryCount = 0;
         const int maxRetries = 100;
 
+        randomnessValue = Mathf.Clamp01(randomnessValue); // Ensure randomness is between 0 and 1
+        const float maxRandomnessScale = 0.8f; // Maximum scaling factor for randomness
+
         Vector2Int currentPoint = exit;
         path.Add(currentPoint);
         visitedPoints.Add(currentPoint);
 
         while (currentPoint != entry)
         {
-            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint)
-                .Where(p => !visitedPoints.Contains(p) && !IsOtherExitOrEntry(p, exit, entry))
-                .ToList();
+            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint).Where(p => !visitedPoints.Contains(p) && !IsOtherExitOrEntry(p, exit, entry)).ToList();
 
             if (neighbors.Count > 0)
             {
-                // Choose the neighbor closest to the entry
-                float closestDist = neighbors.Min(p => Vector2Int.Distance(p, entry));
-                currentPoint = neighbors.Where(p => Mathf.Approximately(Vector2Int.Distance(p, entry), closestDist))
-                                        .OrderBy(_ => UnityEngine.Random.value)
-                                        .First();
+                // Calculate the percentage of the path length relative to maxPathLength
+                float pathPercentage = Mathf.Clamp01((float)path.Count / maxPathLength);
 
+                // Scale randomness based on the path percentage
+                float scaledRandomness = randomnessValue * (1 - pathPercentage) * maxRandomnessScale;
+
+                // Choose a neighbor based on scaled randomness
+                Vector2Int selectedNeighbor;
+                if (Random.value < scaledRandomness)
+                {
+                    // Choose a random neighbor
+                    selectedNeighbor = neighbors.OrderBy(_ => UnityEngine.Random.value).First();
+                }
+                else
+                {
+                    // Choose the neighbor closest to the entry
+                    float closestDist = neighbors.Min(p => Vector2Int.Distance(p, entry));
+                    selectedNeighbor = neighbors.Where(p => Mathf.Approximately(Vector2Int.Distance(p, entry), closestDist)).OrderBy(_ => UnityEngine.Random.value).First();
+                }
+
+                currentPoint = selectedNeighbor;
                 path.Add(currentPoint);
                 visitedPoints.Add(currentPoint);
                 backtrackStack.Push(currentPoint); // Push to stack for backtracking
@@ -365,6 +391,8 @@ public class MapGenerator : MonoBehaviour
         path.Add(entry);
         completedPaths.Add(path);
         MarkPathAsUsed(path);
+
+
     }
 
     /// <summary>
@@ -389,22 +417,11 @@ public class MapGenerator : MonoBehaviour
 
         return neighbors.Where(p => pointCloud.ContainsKey(p) && pointCloud[p]).ToList();
     }
-    
     void MarkPathAsUsed(List<Vector2Int> path)
     {
         foreach (var point in path)
         {
             pointCloud[point] = false;
-        }
-    }
-    void Shuffle<T>(List<T> list)
-    {
-        for (int i = list.Count - 1; i > 0; i--)
-        {
-            int randomIndex = Random.Range(0, i + 1);
-            T temp = list[i];
-            list[i] = list[randomIndex];
-            list[randomIndex] = temp;
         }
     }
     void OnDrawGizmos()
@@ -427,5 +444,4 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-
 }
