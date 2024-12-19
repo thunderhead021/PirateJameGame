@@ -7,12 +7,13 @@ public class HealthBar : MonoBehaviour
     public Slider healthBar;
     public GameObject parent;
 
-    public void ModifyHealth(float amount) 
+    public virtual void ModifyHealth(float amount) 
     {
         maxHealth -= amount;
         maxHealth = Mathf.Max(maxHealth, 0); 
         maxHealth = Mathf.Min(maxHealth, healthBar.maxValue);
         healthBar.value = maxHealth;
+        ShowModifyAmount(amount);
         if (maxHealth == 0)
         {
             Death();
@@ -29,5 +30,10 @@ public class HealthBar : MonoBehaviour
     public virtual void Death() 
     {
         Destroy(parent);
+    }
+
+    public virtual void ShowModifyAmount(float amount)
+    {
+        GameManager.instance.ShowFloatingText(parent, amount.ToString(), parent.CompareTag("Enemy"));
     }
 }
