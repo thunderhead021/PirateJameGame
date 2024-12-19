@@ -6,7 +6,7 @@ public class DisplayGrid : MonoBehaviour
 {
     public List<DisplaySlot> allSlots = new();
 
-    public void SetInfo(List<DisplayInfo> displayInfos) 
+    public void SetInfo(List<BaseObject> displayInfos) 
     {
         if (displayInfos.Count <= 4 && displayInfos.Count > 0) 
         {

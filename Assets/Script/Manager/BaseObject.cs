@@ -1,7 +1,11 @@
-public class BaseObject 
+using UnityEngine;
+
+public class BaseObject : ScriptableObject
 {
-    public DisplayInfo DisplayInfo { get; set; }
-    public virtual void AddInfo()
+    public string infoName;
+    public TargetType targetType;
+
+    public virtual void DoThing(GameObject target)
     {
 
     }

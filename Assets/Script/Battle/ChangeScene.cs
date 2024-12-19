@@ -10,10 +10,12 @@ public class ChangeScene : MonoBehaviour
         {
             PlayerMovementController.instance.canMove = false;
             SoundManager.instance.PlaySoundTrigger(SoundID.TEST_SOUND);
+            //get encounter 
+            GameManager.instance.SetCurEncounter(other.gameObject.GetComponent<Encounter>());
             //remove enemy (pokemon style)
-            Destroy(other.gameObject);
+            Destroy(other.transform.parent.gameObject);
             //save player postion
-            //save info
+            //save info   
             ChangeToScene();
         }
     }

@@ -17,7 +17,7 @@ public class Targeting : MonoBehaviour
 {
 
     public List<GameObject> enemies;
-    public TargetType targetType = TargetType.None;
+    public BaseObject curObject;
 #nullable enable
     public GameObject? curTarget = null;
 #nullable disable
@@ -28,13 +28,14 @@ public class Targeting : MonoBehaviour
     {
         ResetTarget();
         int curPos = GetCurTargetPos();
-        switch (targetType) 
+        switch (curObject.targetType) 
         {
             case TargetType.Single:
                 if (curPos >= 0) 
                 {
                     curTarget.GetComponent<CheckTarget>().targetingUI.SetActive(true);
                     targets.Add(curTarget);
+                    BattleSceneManager.instance.canTarget = true;
                 }
                 break;
             case TargetType.Triple:
@@ -52,6 +53,7 @@ public class Targeting : MonoBehaviour
                         enemies[curPos + 1].GetComponent<CheckTarget>().targetingUI.SetActive(true);
                         targets.Add(enemies[curPos + 1]);
                     }
+                    BattleSceneManager.instance.canTarget = true;
                 }
                 break;
             case TargetType.Ememies:
@@ -60,6 +62,7 @@ public class Targeting : MonoBehaviour
                     target.GetComponent<CheckTarget>().targetingUI.SetActive(true);
                     targets.Add(target);
                 }
+                BattleSceneManager.instance.canTarget = true;
                 break;
         }
     }
@@ -88,16 +91,20 @@ public class Targeting : MonoBehaviour
         targets.Clear();
     }
 
+    public void ObjectDoThing() 
+    {
+        foreach (var target in targets) 
+        {
+            curObject.DoThing(target);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
         if (BattleSceneManager.instance.canTarget) 
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                BattleSceneManager.instance.Cancle();
-            }
-            else if (Input.GetMouseButtonDown(1)) 
+            if (Input.GetMouseButtonDown(1)) 
             {
                 BattleSceneManager.instance.Cancle();
             }
