@@ -19,7 +19,7 @@ public class MapGenerator : MonoBehaviour
     public bool generateMap = false;
     private List<Vector2Int> exits;
     private List<Vector2Int> entrys;
-    private Vector3 bossEntry;
+    private Vector2Int bossEntry;
     private float pathRandom = 0.5f;
     Vector2Int[] offsets = new Vector2Int[]
     {
@@ -68,7 +68,7 @@ public class MapGenerator : MonoBehaviour
 
         exits = new List<Vector2Int>();
         entrys = new List<Vector2Int>();
-        bossEntry = Vector3.zero;
+        bossEntry = new Vector2Int(0,0);
 
         Vector2Int spawnPosition = Vector2Int.zero;
         occupiedPositions.Clear();
@@ -237,7 +237,7 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"No entry found for exit at {exit}");
+                GeneratePath(exit, bossEntry);
             }
         }
     }
@@ -281,7 +281,7 @@ public class MapGenerator : MonoBehaviour
             {
                 DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
             }
-            bossEntry = new Vector3(position.x, 0, position.y);
+            bossEntry = new Vector2Int((int)position.x, (int)position.y);
             startRoom.roomData.SetDirection(directionOffset.Value, false);
             return;
         }
@@ -314,44 +314,66 @@ public class MapGenerator : MonoBehaviour
         }
 
         List<Vector2Int> path = new List<Vector2Int>();
-        Vector2Int currentPoint = exit;
-
-        int retryLimit = 3; // Number of additional attempts after no neighbors are found
+        Stack<Vector2Int> backtrackStack = new Stack<Vector2Int>(); // For backtracking
+        HashSet<Vector2Int> visitedPoints = new HashSet<Vector2Int>(); // Temporary marking
         int retryCount = 0;
+        const int maxRetries = 100;
+
+        Vector2Int currentPoint = exit;
+        path.Add(currentPoint);
+        visitedPoints.Add(currentPoint);
 
         while (currentPoint != entry)
         {
-            path.Add(currentPoint);
-            Vector2Int lastpoint = currentPoint;
-            pointCloud[currentPoint] = false; // Mark as used
+            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint)
+                .Where(p => !visitedPoints.Contains(p) && !IsOtherExitOrEntry(p, exit, entry))
+                .ToList();
 
-            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint);
-
-            if (neighbors.Count == 0)
+            if (neighbors.Count > 0)
             {
-                if (retryCount >= retryLimit)
-                {
-                    Debug.LogWarning("Exceeded retry limit. Path generation stopped.");
-                    return; // Stop if retry limit is reached
-                }
+                // Choose the neighbor closest to the entry
+                float closestDist = neighbors.Min(p => Vector2Int.Distance(p, entry));
+                currentPoint = neighbors.Where(p => Mathf.Approximately(Vector2Int.Distance(p, entry), closestDist))
+                                        .OrderBy(_ => UnityEngine.Random.value)
+                                        .First();
 
+                path.Add(currentPoint);
+                visitedPoints.Add(currentPoint);
+                backtrackStack.Push(currentPoint); // Push to stack for backtracking
+                retryCount = 0; // Reset retry count
+            }
+            else if (backtrackStack.Count > 0)
+            {
+                // Backtrack to the last point
+                currentPoint = backtrackStack.Pop();
+                path.RemoveAt(path.Count - 1); // Remove the last point from the path
                 retryCount++;
-                Debug.LogWarning($"No neighbors found. Retrying... ({retryCount}/{retryLimit})");
-                continue; // Skip to the next iteration to try again
+            }
+            else
+            {
+                Debug.LogWarning("No more neighbors and backtracking exhausted. Path generation failed.");
+                return;
             }
 
-            // Reset retry count on successful neighbor discovery
-            retryCount = 0;
-
-            float closestDist = neighbors.Min(p => Vector2Int.Distance(p, entry));
-            currentPoint = neighbors.Where(p => Mathf.Approximately(Vector2Int.Distance(p, entry), closestDist)).OrderBy(_ => UnityEngine.Random.value).First();
+            if (retryCount >= maxRetries)
+            {
+                Debug.LogWarning("Exceeded retry limit. Path generation stopped.");
+                return;
+            }
         }
 
         path.Add(entry);
-        pointCloud[entry] = false; // Mark entry as used
-
         completedPaths.Add(path);
         MarkPathAsUsed(path);
+    }
+
+    /// <summary>
+    /// Checks if the point is another exit or entry, excluding the current ones.
+    /// </summary>
+    bool IsOtherExitOrEntry(Vector2Int point, Vector2Int currentExit, Vector2Int currentEntry)
+    {
+        // Assuming you have a list or set of all exits and entries
+        return (exits.Contains(point) || entrys.Contains(point)) && point != currentExit && point != currentEntry;
     }
     List<Vector2Int> GetAvailableNeighbors(Vector2Int point)
     {
