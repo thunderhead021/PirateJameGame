@@ -17,20 +17,28 @@ public class Turns : MonoBehaviour
             else
                 entitiesIndex++;
         }
-        SetTurn(turnIndicators[0]);
     }
 
     public void NextTurn() 
+    {
+        SwitchTurn();
+        StartTurn();
+    }
+
+    public void SwitchTurn() 
     {
         if (turnIndicators.Count > 0)
         {
             Transform lastTurn = transform.GetChild(0);
             lastTurn.SetAsLastSibling();
-
-            Transform thisTurn = transform.GetChild(0);
-            SetTurn(thisTurn.GetComponent<TurnIndicator>());
-            //do something here
         }
+    }
+
+    public void StartTurn() 
+    {
+        Transform thisTurn = transform.GetChild(0);
+        SetTurn(thisTurn.GetComponent<TurnIndicator>());
+        //do something here
     }
 
     private void SetTurn(TurnIndicator turnIndicator) 
@@ -39,7 +47,6 @@ public class Turns : MonoBehaviour
         {
             BattleSceneManager.instance.SetEnemyTurn(true);
             turnIndicator.Entity.gameObject.GetComponent<CreateModel>().entity.AttackList[0].DoThing(PlayerManager.instance.gameObject);
-            NextTurn();
         }
         else if (turnIndicator.Entity.gameObject.CompareTag("Player")) 
         {

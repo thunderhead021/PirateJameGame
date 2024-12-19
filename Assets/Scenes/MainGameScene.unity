@@ -1115,6 +1115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   curEncounter: {fileID: 1638351106}
+  floatingText: {fileID: 7255734515985174771, guid: 4c563b6606f02df4d86b8b2e1c3d87ff, type: 3}
 --- !u!114 &1638351106
 MonoBehaviour:
   m_ObjectHideFlags: 0

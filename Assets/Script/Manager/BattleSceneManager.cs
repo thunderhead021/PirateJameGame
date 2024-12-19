@@ -9,6 +9,7 @@ public class BattleSceneManager : MonoBehaviour
     public GameObject selectionsList;
     public GameObject enemyTurn;
     public HealthBar playerHealthBar;
+    public GameObject TurnButton;
     public Turns turnUI;
 
     [HideInInspector]

@@ -27,7 +27,8 @@ public class CheckTarget : MonoBehaviour
         {
             BattleSceneManager.instance.targeting.ObjectDoThing();
             BattleSceneManager.instance.Cancle();
-            BattleSceneManager.instance.turnUI.NextTurn();
+            BattleSceneManager.instance.turnUI.SwitchTurn();
+            BattleSceneManager.instance.SetEnemyTurn(true);
         }
     }
 }
