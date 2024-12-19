@@ -477,7 +477,7 @@ MonoBehaviour:
   generateMap: 1
   pathRandom: 0.2
   maxPathLength: 60
-  gridSize: 5
+  gridSize: 10
   gridBounds: {x: 200, y: 400}
 --- !u!1 &371435690
 GameObject:

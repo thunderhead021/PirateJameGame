@@ -16,9 +16,8 @@ MonoBehaviour:
   RoomList:
   - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
   - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
-  - {fileID: 11400000, guid: 6f16dcf5b2abe4840b147dad6d76fefa, type: 2}
   - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
-  Seed: 10
+  Seed: 5
   LevelDistance: 150
   RoomRandomnessMax: 20
   RoomRandomnessMin: 0
