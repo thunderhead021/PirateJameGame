@@ -173,7 +173,7 @@ public class MapGenerator : MonoBehaviour
         spawnRoom = spawnRoom.Clone();
         bossRoom = bossRoom.Clone();
         RoomList = new List<SO_Room>();
-        foreach (var room in level.RoomList)
+        foreach (var room in level.SpecialRoomList)
         {
             RoomList.Add(room.Clone());
         }
