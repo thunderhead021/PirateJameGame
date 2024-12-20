@@ -22,16 +22,23 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]private float pathRandom = 0.5f;
     [SerializeField]private int maxPathLength = 80;
 
+    public static MapGenerator instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
+
     Vector2Int[] offsets = new Vector2Int[]
     {
-        new Vector2Int(-5, 0),  // Left
-        new Vector2Int(5, 0),   // Right
-        new Vector2Int(0, -5),  // Down
-        new Vector2Int(0, 5),   // Up
-        new Vector2Int(-5, -5), // Bottom-left
-        new Vector2Int(5, -5),  // Bottom-right
-        new Vector2Int(-5, 5),  // Top-left
-        new Vector2Int(5, 5)    // Top-right
+        new(-5, 0),  // Left
+        new(5, 0),   // Right
+        new(0, -5),  // Down
+        new(0, 5),   // Up
+        new(-5, -5), // Bottom-left
+        new(5, -5),  // Bottom-right
+        new(-5, 5),  // Top-left
+        new(5, 5)    // Top-right
     };
 
     private struct RoomPlacement
@@ -47,13 +54,28 @@ public class MapGenerator : MonoBehaviour
             roomData = data;
         }
     }
-    private List<RoomPlacement> occupiedPositions = new List<RoomPlacement>();
+    private List<RoomPlacement> occupiedPositions = new();
     public int gridSize = 10; // Distance between points
-    public Vector2Int gridBounds = new Vector2Int(200,400 ); // Grid size (width x height)
-    private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
-    private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
+    public Vector2Int gridBounds = new(200,400 ); // Grid size (width x height)
+    private Dictionary<Vector2Int, bool> pointCloud = new();
+    private List<List<Vector2Int>> completedPaths = new();
 
     public void Update()
+    {
+        //if (generateMap)
+        //{
+        //    LoadLevel(CurrentLevelIndex);
+        //    Debug.Log("Generating Map");
+        //    generateMap = false;
+        //}
+    }
+
+    private void Start()
+    {
+        CreateMap();
+    }
+
+    public void CreateMap() 
     {
         if (generateMap)
         {
@@ -62,6 +84,7 @@ public class MapGenerator : MonoBehaviour
             generateMap = false;
         }
     }
+
     public void GenerateMap()
     {
         ClearMap();
@@ -89,6 +112,7 @@ public class MapGenerator : MonoBehaviour
 
         GeneratePoints();
     }
+
     private void InstRoom(SO_Room roomData, Vector2Int position)
     {
         GameObject roomObject = Instantiate(roomData.RoomPrefab);
@@ -115,10 +139,12 @@ public class MapGenerator : MonoBehaviour
         }
         
     }
+
     private void PlaceRoomExact(SO_Room roomData, Vector2Int position)
     {
         InstRoom(roomData, position);
     } 
+
     private void PlaceRoom(SO_Room roomData, Vector2Int spawnPosition)
     {
         SO_LevelInstance currentLevel = LevelInstances[CurrentLevelIndex];
@@ -142,6 +168,7 @@ public class MapGenerator : MonoBehaviour
 
         InstRoom(roomData, position);
     }
+
     private bool CheckOverlap(Vector2Int position, Vector2Int size)
     {
         foreach (RoomPlacement placement in occupiedPositions)
@@ -157,6 +184,7 @@ public class MapGenerator : MonoBehaviour
         }
         return false; // No overlap
     }
+
     public void LoadLevel(int levelIndex)
     {
         if (levelIndex < 0 || levelIndex >= LevelInstances.Count)
@@ -183,6 +211,7 @@ public class MapGenerator : MonoBehaviour
 
         GenerateMap();
     }
+
     public void ClearMap()
     {
         foreach (Transform child in transform)
@@ -191,6 +220,7 @@ public class MapGenerator : MonoBehaviour
         }
         DebugRenderer.ClearDebug();
     }
+
     public void GeneratePoints()
     {
         foreach (var roomPlacement in occupiedPositions)
@@ -207,6 +237,7 @@ public class MapGenerator : MonoBehaviour
         FindPoints();
         
     }
+
     private void FindPoints()
     {
         Debug.Log($"finished Generating entrys {entrys.Count} exits{exits.Count} boss {bossEntry}");
@@ -248,6 +279,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
+
     private void GenerateExitForRoom(RoomPlacement startRoom)
     {
         Vector2? directionOffset = startRoom.roomData.GetRandomEnabledDirection();
@@ -268,6 +300,7 @@ public class MapGenerator : MonoBehaviour
             Debug.LogWarning("No enabled direction found for room: " + startRoom.roomData.RoomName);
         }
     }
+
     private void GenerateEntryForRoom(RoomPlacement startRoom)
     {
         // Get a random enabled direction as Vector2 offset
@@ -302,6 +335,7 @@ public class MapGenerator : MonoBehaviour
         entrys.Add(positionInt);
         startRoom.roomData.SetDirection(directionOffset.Value, false);
     }
+
     void InitializePointCloud()
     {
         for (int y = 0; y <= gridBounds.y; y += gridSize) // Y-direction loop
@@ -313,6 +347,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
+
     void GeneratePath(Vector2Int exit, Vector2Int entry, float randomnessValue, int maxPathLength)
     {
         if (!pointCloud.ContainsKey(exit) || !pointCloud.ContainsKey(entry))
@@ -399,6 +434,7 @@ public class MapGenerator : MonoBehaviour
         // Assuming you have a list or set of all exits and entries
         return (exits.Contains(point) || entrys.Contains(point)) && point != currentExit && point != currentEntry;
     }
+
     List<Vector2Int> GetAvailableNeighbors(Vector2Int point)
     {
         int tolGridSize = gridSize;
@@ -413,6 +449,7 @@ public class MapGenerator : MonoBehaviour
 
         return neighbors.Where(p => pointCloud.ContainsKey(p) && pointCloud[p]).ToList();
     }
+
     void MarkPathAsUsed(List<Vector2Int> path)
     {
         foreach (var point in path)
@@ -420,6 +457,7 @@ public class MapGenerator : MonoBehaviour
             pointCloud[point] = false;
         }
     }
+
     void OnDrawGizmos()
     {
         if (pointCloud == null || pointCloud.Count == 0) return;
@@ -440,4 +478,5 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
+
 }

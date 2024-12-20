@@ -6,10 +6,33 @@ public class GameManager : MonoBehaviour
 
     public Encounter curEncounter;
     public FloatingText floatingText;
+    public GameObject playerChar;
 
+    [HideInInspector]
+    public SceneID curScene = SceneID.MainGameScene;
+
+    [SerializeField]
+    private Vector3 playerPos;
+   
     private void Awake()
     {
         instance = this;
+    }
+
+    private void FixedUpdate()
+    {
+        if (curScene == SceneID.MainGameScene)
+        {
+            if (playerChar != null)
+            {
+                playerPos = playerChar.transform.position;
+            }
+            else 
+            {
+                playerChar = GameObject.FindGameObjectWithTag("PlayerUnit");
+                playerChar.transform.position = playerPos;
+            }
+        }
     }
 
     public void SetCurEncounter(Encounter encounter) 
