@@ -14,26 +14,11 @@ public class MapGenerator : MonoBehaviour
     public int MinIntermediaryRooms = 1;
     public int MaxIntermediaryRooms = 3;
     public int RoomRandomnessMax = 5;
-    public bool ShowDebug = true;
-    public bool generateMap = false;
     private List<Vector2Int> exits;
     private List<Vector2Int> entrys;
     private Vector2Int bossEntry;
     [SerializeField]private float pathRandom = 0.5f;
     [SerializeField]private int maxPathLength = 80;
-
-    Vector2Int[] offsets = new Vector2Int[]
-    {
-        new Vector2Int(-5, 0),  // Left
-        new Vector2Int(5, 0),   // Right
-        new Vector2Int(0, -5),  // Down
-        new Vector2Int(0, 5),   // Up
-        new Vector2Int(-5, -5), // Bottom-left
-        new Vector2Int(5, -5),  // Bottom-right
-        new Vector2Int(-5, 5),  // Top-left
-        new Vector2Int(5, 5)    // Top-right
-    };
-
     private struct RoomPlacement
     {
         public Vector2Int Position;
@@ -53,33 +38,22 @@ public class MapGenerator : MonoBehaviour
     private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
     private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
 
-    public void Update()
+    public void Awake()
     {
-        if (generateMap)
-        {
-            LoadLevel(CurrentLevelIndex);
-            Debug.Log("Generating Map");
-            generateMap = false;
-        }
+        LoadLevel(CurrentLevelIndex);
     }
     public void GenerateMap()
     {
-        ClearMap();
+        Debug.Log($"GeneratingMap With Seed:{Seed}");
         Random.InitState(Seed);
-
         exits = new List<Vector2Int>();
         entrys = new List<Vector2Int>();
         bossEntry = new Vector2Int(0,0);
-
         Vector2Int spawnPosition = Vector2Int.zero;
-        occupiedPositions.Clear();
-        
-        InitializePointCloud();
-
-        PlaceRoomExact(spawnRoom, spawnPosition);
 
         SO_LevelInstance currentLevel = LevelInstances[CurrentLevelIndex];
         Vector2Int bossRoomPosition = new Vector2Int(0, currentLevel.LevelDistance);
+        PlaceRoomExact(spawnRoom, spawnPosition);
         PlaceRoomExact(bossRoom, bossRoomPosition);
 
         foreach (var room in RoomList)
@@ -88,6 +62,19 @@ public class MapGenerator : MonoBehaviour
         }
 
         GeneratePoints();
+        FindPoints();
+        Debug.Log("Finished Generation, Checking Validity");
+
+        FlipPointCloud();
+        if(!ValidatePath(Vector2Int.zero, bossEntry))
+        {
+            Seed = Seed + 1;
+            Debug.Log("Failed Validity");
+            ResetMap(CurrentLevelIndex);
+            GenerateMap();
+            return;
+        }
+        Debug.Log("Succeeded Validity");
     }
     private void InstRoom(SO_Room roomData, Vector2Int position)
     {
@@ -103,17 +90,7 @@ public class MapGenerator : MonoBehaviour
         if (pointCloud.ContainsKey(position))
         {
             pointCloud[position] = false; // Mark it as unavailable
-        }
-        foreach (var offset in offsets)
-        {
-            Vector2Int surroundingPoint = position + offset;
-
-            if (pointCloud.ContainsKey(surroundingPoint))
-            {
-                pointCloud[surroundingPoint] = false; // Mark surrounding point as unavailable
-            }
-        }
-        
+        } 
     }
     private void PlaceRoomExact(SO_Room roomData, Vector2Int position)
     {
@@ -128,7 +105,6 @@ public class MapGenerator : MonoBehaviour
         int roomIndex = occupiedPositions.Count - 1;
         float t = (float)roomIndex / (RoomList.Count + 1);
         int positionY = Mathf.RoundToInt(totalDistance * t);
-        Debug.Log(t);
 
         Vector2Int position = new Vector2Int(Random.Range(-(RoomRandomnessMax + 10), RoomRandomnessMax + 10), positionY + Random.Range(-RoomRandomnessMax, RoomRandomnessMax));
         position.x = Mathf.RoundToInt(position.x / 10) * 10;  // Clamp X to multiples of 10
@@ -159,6 +135,7 @@ public class MapGenerator : MonoBehaviour
     }
     public void LoadLevel(int levelIndex)
     {
+        Debug.Log("LoadingLevel");
         if (levelIndex < 0 || levelIndex >= LevelInstances.Count)
         {
             Debug.LogError("Invalid level index");
@@ -180,11 +157,28 @@ public class MapGenerator : MonoBehaviour
 
         Seed = level.Seed;
         RoomRandomnessMax = level.RoomRandomnessMax;
-
+        ResetMap(levelIndex);
         GenerateMap();
     }
-    public void ClearMap()
+    public void ResetMap(int levelIndex)
     {
+        Debug.Log("ClearingMap");
+        occupiedPositions.Clear(); // Clear previous room placements
+        completedPaths.Clear(); // Clear paths
+        pointCloud.Clear(); // Reset point cloud
+        InitializePointCloud(); // Reinitialize
+
+        SO_LevelInstance level = LevelInstances[levelIndex];
+        CurrentLevelIndex = levelIndex;
+
+        // Clone each room from the level's RoomList and add it to RoomList
+        spawnRoom = spawnRoom.Clone();
+        bossRoom = bossRoom.Clone();
+        RoomList = new List<SO_Room>();
+        foreach (var room in level.SpecialRoomList)
+        {
+            RoomList.Add(room.Clone());
+        }
         foreach (Transform child in transform)
         {
             Destroy(child.gameObject);
@@ -204,13 +198,9 @@ public class MapGenerator : MonoBehaviour
                 GenerateEntryForRoom(roomPlacement);
             }
         }
-        FindPoints();
-        
     }
     private void FindPoints()
     {
-        Debug.Log($"finished Generating entrys {entrys.Count} exits{exits.Count} boss {bossEntry}");
-
         foreach (var exit in exits)
         {
             Vector2Int? closestEntry = null;
@@ -226,11 +216,8 @@ public class MapGenerator : MonoBehaviour
                     closestEntry = entry;
                 }
             }
-
             if (closestEntry.HasValue)
             {
-                Debug.Log($"Closest entry to exit at {exit} is at {closestEntry.Value} with distance {closestDistance}");
-                
                 GeneratePath(exit, closestEntry.Value, pathRandom, maxPathLength);
                 entrys.Remove(closestEntry.Value);
             }
@@ -247,6 +234,7 @@ public class MapGenerator : MonoBehaviour
                 InstRoom(hallwayRoom, path[i]);
             }
         }
+        
     }
     private void GenerateExitForRoom(RoomPlacement startRoom)
     {
@@ -256,10 +244,6 @@ public class MapGenerator : MonoBehaviour
         {
             Vector2 position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2)+ 5));
             Vector2Int positionInt = new Vector2Int((int)position.x, (int)position.y);
-            if (ShowDebug)
-            {
-                DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.red);
-            }
             exits.Add(positionInt);
             startRoom.roomData.SetDirection(directionOffset.Value, false);
         }
@@ -281,23 +265,13 @@ public class MapGenerator : MonoBehaviour
         Vector2 position = Vector2.zero;
         if(startRoom.roomData.MergeAmount > 4)
         {
-            Debug.Log($"MergeEverything{startRoom.roomData.name}{directionOffset.HasValue}");
-
             position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) + 5));
-            if (ShowDebug)
-            {
-                DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
-            }
             bossEntry = new Vector2Int((int)position.x, (int)position.y);
             startRoom.roomData.SetDirection(directionOffset.Value, false);
             return;
         }
         
         position = startRoom.Position + (directionOffset.Value * ((startRoom.roomData.Size.x / 2) + 5));
-        if (ShowDebug)
-        {
-            DebugRenderer.DrawDebugSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.blue);
-        }
         Vector2Int positionInt = new Vector2Int((int)position.x, (int)position.y);
         entrys.Add(positionInt);
         startRoom.roomData.SetDirection(directionOffset.Value, false);
@@ -390,10 +364,6 @@ public class MapGenerator : MonoBehaviour
         completedPaths.Add(path);
         MarkPathAsUsed(path);
     }
-
-    /// <summary>
-    /// Checks if the point is another exit or entry, excluding the current ones.
-    /// </summary>
     bool IsOtherExitOrEntry(Vector2Int point, Vector2Int currentExit, Vector2Int currentEntry)
     {
         // Assuming you have a list or set of all exits and entries
@@ -419,6 +389,68 @@ public class MapGenerator : MonoBehaviour
         {
             pointCloud[point] = false;
         }
+    }
+    void FlipPointCloud()
+    {
+        // Create a copy of the keys to avoid modifying the collection during iteration
+        var keys = new List<Vector2Int>(pointCloud.Keys);
+
+        foreach (var key in keys)
+        {
+            pointCloud[key] = !pointCloud[key];
+        }
+    }
+    private bool ValidatePath(Vector2Int start, Vector2Int entry)
+    {
+        if (!pointCloud.ContainsKey(start) || !pointCloud.ContainsKey(entry))
+        {
+            Debug.LogError($"Exit or Entry point is outside the grid bounds: {start}, {entry}");
+            return false;
+        }
+        
+        Stack<Vector2Int> backtrackStack = new Stack<Vector2Int>();
+        HashSet<Vector2Int> visitedPoints = new HashSet<Vector2Int>();
+        int retryCount = 0;
+        const int maxRetries = 100;
+
+        Vector2Int currentPoint = start;
+        visitedPoints.Add(currentPoint);
+        backtrackStack.Push(currentPoint);
+        while (currentPoint != entry)
+        {
+            // Get unvisited neighbors
+            List<Vector2Int> neighbors = GetAvailableNeighbors(currentPoint).Where(p => !visitedPoints.Contains(p)).ToList();
+            if (neighbors.Count > 0)
+            {
+                // Choose the neighbor closest to the entry
+                Vector2Int selectedNeighbor = neighbors.OrderBy(p => Vector2Int.Distance(p, entry)).ThenBy(_ => UnityEngine.Random.value).First();
+
+                currentPoint = selectedNeighbor;
+                visitedPoints.Add(currentPoint);
+                backtrackStack.Push(currentPoint); // Add to the backtracking stack
+                retryCount = 0; // Reset retries as we made progress
+            }
+            else if (backtrackStack.Count > 0)
+            {
+                // Backtrack if no valid neighbors
+                currentPoint = backtrackStack.Pop();
+                retryCount++;
+            }
+            else
+            {
+                Debug.LogWarning("No more neighbors and backtracking exhausted. Path Validity failed.");
+                return false;
+            }
+            // Stop if retry limit is exceeded
+            if (retryCount >= maxRetries)
+            {
+                Debug.LogWarning("Exceeded retry limit. Path Validity stopped.");
+                return false;
+            }
+        }
+
+        // If we reached here, the entry was successfully found
+        return true;
     }
     void OnDrawGizmos()
     {

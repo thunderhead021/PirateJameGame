@@ -159,6 +159,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4955555334413695572}
+  - component: {fileID: 4389753032046848233}
   m_Layer: 0
   m_Name: PF_Mini_Boss_Room
   m_TagString: Untagged
@@ -185,6 +186,27 @@ Transform:
   - {fileID: 7405846533048669387}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4389753032046848233
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3490285591398873037}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10, y: 3.509842, z: 10}
+  m_Center: {x: 0, y: 1.754921, z: 0}
 --- !u!1 &4774978424775421737
 GameObject:
   m_ObjectHideFlags: 0
