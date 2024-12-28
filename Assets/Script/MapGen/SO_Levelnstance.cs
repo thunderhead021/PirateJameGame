@@ -5,7 +5,8 @@ using System.Collections.Generic;
 public class SO_LevelInstance : ScriptableObject
 {
     public string LevelName;
-    public List<SO_Room> RoomList;
+    public List<SO_Room> SpecialRoomList;
+    public List<SO_Room> NormalRoomPool;
     public int Seed;
     public int LevelDistance;
     public int RoomRandomnessMax;
