@@ -848,8 +848,6 @@ MonoBehaviour:
   MinIntermediaryRooms: 1
   MaxIntermediaryRooms: 3
   RoomRandomnessMax: 5
-  ShowDebug: 1
-  generateMap: 1
   pathRandom: 0.2
   maxPathLength: 60
   gridSize: 10
@@ -881,7 +879,7 @@ Transform:
   m_GameObject: {fileID: 1620877519}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.14, y: 1.47, z: 3.25}
+  m_LocalPosition: {x: 0, y: 1.47, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

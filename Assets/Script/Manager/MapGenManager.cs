@@ -37,9 +37,10 @@ public class MapGenerator : MonoBehaviour
     public Vector2Int gridBounds = new Vector2Int(200,400 ); // Grid size (width x height)
     private Dictionary<Vector2Int, bool> pointCloud = new Dictionary<Vector2Int, bool>();
     private List<List<Vector2Int>> completedPaths = new List<List<Vector2Int>>();
-
+    public static MapGenerator instance;
     public void Awake()
     {
+        instance = this;
         LoadLevel(CurrentLevelIndex);
     }
     public void GenerateMap()
