@@ -9,18 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 555aedc59622f334187bcb502a085a06, type: 3}
+  m_Script: {fileID: 11500000, guid: 5156ba6196839b540bf52f5ac0362546, type: 3}
   m_Name: Level1
   m_EditorClassIdentifier: 
-  LevelName: LVL1
-  SpecialRoomList:
-  - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
-  - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
-  - {fileID: 11400000, guid: 6f16dcf5b2abe4840b147dad6d76fefa, type: 2}
-  - {fileID: 11400000, guid: 4bde945067df36940a5d024d25c2a04e, type: 2}
-  NormalRoomPool:
-  - {fileID: 11400000, guid: a7e9ddfa5e9c4a04095184a0cc70d769, type: 2}
-  Seed: 5
-  LevelDistance: 150
-  RoomRandomnessMax: 20
-  RoomRandomnessMin: 0
+  levelName: Level 1
+  numberOfRestRooms: 2
+  numberOfMiniBossRooms: 0
+  numberOfEnemyRooms: 2

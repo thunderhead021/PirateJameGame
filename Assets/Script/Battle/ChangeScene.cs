@@ -25,7 +25,7 @@ public class ChangeScene : MonoBehaviour
         Cursor.lockState = SceneID != SceneID.MainGameScene ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = SceneID != SceneID.MainGameScene;
         GameManager.instance.curScene = SceneID;
-        MapGenerator.instance.gameObject.SetActive(SceneID == SceneID.MainGameScene);
+        //MapGenerator.instance.gameObject.SetActive(SceneID == SceneID.MainGameScene);
 
         SceneManager.LoadScene(ScenesFactory.GetScene(SceneID));
     }

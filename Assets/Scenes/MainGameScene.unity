@@ -636,6 +636,57 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   soundFactory: {fileID: 11400000, guid: 98f7a3d3dc1385d4e919fe097f630e54, type: 2}
   audioSource: {fileID: 845449949}
+--- !u!1 &905461220
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 905461221}
+  - component: {fileID: 905461222}
+  m_Layer: 0
+  m_Name: LevelManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &905461221
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 905461220}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1172043988}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &905461222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 905461220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb1863f9202ab44da0233de4fc4ffd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levels:
+  - {fileID: 11400000, guid: 5d711292a9bde1a41a3f63c5e87c4e85, type: 2}
+  playerStartingPos: {x: 0, y: 1.47, z: 0}
+  numberOfRestRooms: 0
+  numberOfMiniBossRooms: 0
+  numberOfEnemyRooms: 0
+  generated: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,6 +830,7 @@ Transform:
   - {fileID: 845449948}
   - {fileID: 1638351104}
   - {fileID: 1839071576}
+  - {fileID: 905461221}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1172043989
@@ -802,7 +854,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1555108710}
-  - component: {fileID: 1555108711}
+  - component: {fileID: 1555108712}
+  - component: {fileID: 1555108713}
   m_Layer: 0
   m_Name: MapManager
   m_TagString: Untagged
@@ -825,7 +878,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1172043988}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1555108711
+--- !u!114 &1555108712
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -834,24 +887,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 1555108709}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffc192dc409a90f4caea529d9ef65c1d, type: 3}
+  m_Script: {fileID: 11500000, guid: b87d082ac9bc26543b18bbb62b38fd00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RoomList: []
-  spawnRoom: {fileID: 11400000, guid: ebe7c6975d6bc4740bd4e1a5fc8e50ac, type: 2}
-  bossRoom: {fileID: 11400000, guid: 62e2f2db482251b43805d1f88ba19c45, type: 2}
-  hallwayRoom: {fileID: 11400000, guid: a7e9ddfa5e9c4a04095184a0cc70d769, type: 2}
-  LevelInstances:
-  - {fileID: 11400000, guid: 5d711292a9bde1a41a3f63c5e87c4e85, type: 2}
-  CurrentLevelIndex: 0
-  Seed: 1
-  MinIntermediaryRooms: 1
-  MaxIntermediaryRooms: 3
-  RoomRandomnessMax: 5
-  pathRandom: 0.2
-  maxPathLength: 60
-  gridSize: 10
-  gridBounds: {x: 200, y: 400}
+  normalRooms:
+  - {fileID: 4084220784124303781, guid: 43012aac9520aee4390dbe0efdc518a4, type: 3}
+  bossRooms:
+  - {fileID: 852894026618669302, guid: 56a82f0702edc834689438150ea22372, type: 3}
+  miniBoosRooms:
+  - {fileID: -8133718147822536039, guid: e3ab2570eacca2e42aeeb964d099d7cd, type: 3}
+  enemyRooms:
+  - {fileID: -7345008851197559379, guid: f7e123f2e97b33847985c5b3488672f4, type: 3}
+  restRooms:
+  - {fileID: -2702896175892675523, guid: 3dce4902fd26eb240a5f066b24772fd1, type: 3}
+  startRooms:
+  - {fileID: -2702896175892675523, guid: 6b8b54694fafd414e942b24ccc073201, type: 3}
+  roomSize: {x: 10, y: 10}
+  roomYPos: -1.35
+--- !u!114 &1555108713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1555108709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deb6cb88010d65a41a46f22f5720ad3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  size: {x: 0, y: 0}
+  startPos: 0
 --- !u!1 &1620877519
 GameObject:
   m_ObjectHideFlags: 0
