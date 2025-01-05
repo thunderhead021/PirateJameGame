@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum OpeningDirection
 {
@@ -11,10 +13,52 @@ public enum OpeningDirection
     right,
 }
 
+public enum Order
+{
+    first,
+    second,
+    third,
+}
+
+public struct OpenOrder
+{
+    public OpeningDirection opening { get; }
+    public Order order { get; }
+
+    public OpenOrder(OpeningDirection openingDirection, Order order)
+    {
+        opening = openingDirection;
+        this.order = order;
+    }
+
+    // Override Equals to ensure correct comparisons
+    public override bool Equals(object obj)
+    {
+        if (obj is OpenOrder other)
+        {
+            return opening == other.opening && order == other.order;
+        }
+        return false;
+    }
+
+    // Override GetHashCode for consistent hashing
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(opening, order);
+    }
+
+    // ToString for debugging
+    public override readonly string ToString()
+    {
+        return $"({opening}, {order})";
+    }
+}
+
+
 public class Cell
 {
     public bool visited = false;
-    public HashSet<OpeningDirection> status = new();
+    public HashSet<OpenOrder> status = new();
 }
 
 public class MapGenerator : MonoBehaviour
@@ -78,36 +122,46 @@ public class MapGenerator : MonoBehaviour
                 {
                     if (newCell - 1 == curCell)
                     {
-                        board[curCell].status.Add(OpeningDirection.left);
+                        Order order = getRandomOrder();
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.left, order));
                         curCell = newCell;
-                        board[curCell].status.Add(OpeningDirection.right);
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.right, order));
                     }
                     else
                     {
-                        board[curCell].status.Add(OpeningDirection.top);
+                        Order order = getRandomOrder();
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.top, order));
                         curCell = newCell;
-                        board[curCell].status.Add(OpeningDirection.bottom);
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.bottom, order));
                     }
                 }
                 else 
                 {
                     if (newCell + 1 == curCell)
                     {
-                        board[curCell].status.Add(OpeningDirection.right);
+                        Order order = getRandomOrder();
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.right, order));
                         curCell = newCell;
-                        board[curCell].status.Add(OpeningDirection.left);
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.left, order));
                     }
                     else
                     {
-                        board[curCell].status.Add(OpeningDirection.bottom);
+                        Order order = getRandomOrder();
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.bottom, order));
                         curCell = newCell;
-                        board[curCell].status.Add(OpeningDirection.top);
+                        board[curCell].status.Add(new OpenOrder(OpeningDirection.top, order));
                     }
                 }
             }
         }
 
         MapManager.instance.GenerateLevel();
+    }
+
+    private Order getRandomOrder() 
+    {
+        Array value = Enum.GetValues(typeof(Order));
+        return (Order)value.GetValue(Random.Range(0, value.Length));
     }
 
     private List<int> CheckNeighbors(int cell) 

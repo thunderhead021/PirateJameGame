@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Level1
   m_EditorClassIdentifier: 
   levelName: Level 1
+  numberOfNormalRooms: 13
   numberOfRestRooms: 2
   numberOfMiniBossRooms: 0
   numberOfEnemyRooms: 2

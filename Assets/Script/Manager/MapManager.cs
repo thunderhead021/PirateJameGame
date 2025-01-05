@@ -52,7 +52,7 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    private void CreateRoom(Vector3 postion, HashSet<OpeningDirection> openingDirections, string name, bool isBoss, bool isStart)
+    private void CreateRoom(Vector3 postion, HashSet<OpenOrder> openingDirections, string name, bool isBoss, bool isStart)
     {
         Room room = GetARoom(isBoss, isStart);
         GameObject newRoom = Instantiate(room.gameObject, postion, Quaternion.identity, transform);

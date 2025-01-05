@@ -683,6 +683,7 @@ MonoBehaviour:
   levels:
   - {fileID: 11400000, guid: 5d711292a9bde1a41a3f63c5e87c4e85, type: 2}
   playerStartingPos: {x: 0, y: 1.47, z: 0}
+  numberOfNormalRooms: 10
   numberOfRestRooms: 0
   numberOfMiniBossRooms: 0
   numberOfEnemyRooms: 0
@@ -891,18 +892,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalRooms:
-  - {fileID: 4084220784124303781, guid: 43012aac9520aee4390dbe0efdc518a4, type: 3}
+  - {fileID: 1325536664343458057, guid: 8655e015643f95742938cf20dd6a079b, type: 3}
   bossRooms:
-  - {fileID: 852894026618669302, guid: 56a82f0702edc834689438150ea22372, type: 3}
+  - {fileID: 1325536664343458057, guid: 248047c76114adb4cb90da75df910032, type: 3}
   miniBoosRooms:
-  - {fileID: -8133718147822536039, guid: e3ab2570eacca2e42aeeb964d099d7cd, type: 3}
+  - {fileID: 1325536664343458057, guid: 190166af0a99c6c4f9c9ec048f2202a7, type: 3}
   enemyRooms:
-  - {fileID: -7345008851197559379, guid: f7e123f2e97b33847985c5b3488672f4, type: 3}
+  - {fileID: 1325536664343458057, guid: 6d2bc2ead093c9b40b25f9a86ef83fb0, type: 3}
   restRooms:
-  - {fileID: -2702896175892675523, guid: 3dce4902fd26eb240a5f066b24772fd1, type: 3}
+  - {fileID: 1325536664343458057, guid: 1f1a134169b4a5e498c1567e55caaba2, type: 3}
   startRooms:
-  - {fileID: -2702896175892675523, guid: 6b8b54694fafd414e942b24ccc073201, type: 3}
-  roomSize: {x: 10, y: 10}
+  - {fileID: 1325536664343458057, guid: 5489d63c575c8f0449c287bf5ec63fad, type: 3}
+  roomSize: {x: 44, y: 44}
   roomYPos: -1.35
 --- !u!114 &1555108713
 MonoBehaviour:
@@ -945,7 +946,7 @@ Transform:
   m_GameObject: {fileID: 1620877519}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.47, z: 0}
+  m_LocalPosition: {x: 0, y: 1.47, z: -15.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

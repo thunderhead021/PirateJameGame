@@ -5,36 +5,39 @@ using UnityEngine;
 public class Room : MonoBehaviour
 {
     //up down left right
-    public GameObject[] walls;
+    public Wall[] walls;
+
+
     //public List<OpeningDirection> openingDirections;
+    //public List<Order> orders;
 
     //private void Start()
     //{
-    //    UpdateRoom(openingDirections.ToHashSet());
+    //    HashSet<OpenOrder> openOrders = new();
+    //    for(int i = 0; i < openingDirections.Count; i++) 
+    //    {
+    //            openOrders.Add(new OpenOrder(openingDirections[i], orders[i]));
+    //    }
+    //    UpdateRoom(openOrders);
     //}
 
-    public void UpdateRoom(HashSet<OpeningDirection> openingDirections) 
+    public void UpdateRoom(HashSet<OpenOrder> openingDirections) 
     {
-        foreach (GameObject wall in walls) 
+        foreach (OpenOrder openingDirection in openingDirections) 
         {
-            wall.SetActive(true);
-        }
-
-        foreach (OpeningDirection openingDirection in openingDirections) 
-        {
-            switch (openingDirection)
+            switch (openingDirection.opening)
             {
                 case OpeningDirection.top:
-                    walls[0].SetActive(false);
+                    walls[0].SetDoor(openingDirection.order);
                     break;
                 case OpeningDirection.bottom:
-                    walls[1].SetActive(false);
+                    walls[1].SetDoor(openingDirection.order);
                     break;
                 case OpeningDirection.left:
-                    walls[2].SetActive(false);
+                    walls[2].SetDoor(openingDirection.order);
                     break;
                 case OpeningDirection.right:
-                    walls[3].SetActive(false);
+                    walls[3].SetDoor(openingDirection.order);
                     break;
             }
         }
